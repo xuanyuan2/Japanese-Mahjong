@@ -1,0 +1,14 @@
+The following should be the responsibilities of the server:
+Accept connections from clients
+Maintain state of all 136 tiles
+Regulate play
+Distribute (relevant) tile information to players
+Keep clients informed of relevant changes in gamestate (shared packet classification system?)
+Score hands
+End connections with clients at end of game
+
+The following should be the responsibilities of the client:
+Connect to server
+GUI of game
+Transmitting player tile selection - discards and melds
+Receiving game state information on the fly (shared packet classification system?)

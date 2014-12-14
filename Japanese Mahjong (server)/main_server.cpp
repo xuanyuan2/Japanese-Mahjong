@@ -22,27 +22,58 @@ Because I'm a desperate undergrad that needs to prove his worth.
 
 Developed in Visual Studio 2012 (thanks for the free copy, MS Dreamspark!).
 Visual Studio is, of course, Microsoft's proprietary IDE.
+
+This is the main file of the SERVER for Japanese Mahjong.
 */
 #include <iostream>
+#include <sstream>
 #include <SFML/Network.hpp>
-#include <SFML/Network/SocketSelector.hpp>
+#include <SFML/Network/IpAddress.hpp>
 
 const int NUMPLAYERS = 1; // Should actually be 4, of course
-const bool DEBUG = true; // Set to false when compiling binaries!
+
+// Host specifies server port. Returns the valid port chosen by the host.
+int choosePort() {
+	while(true) {
+		int port; 
+
+		std::cout << "Please enter port number: ";
+
+		std::string input;
+		std::getline(std::cin, input);
+
+		std::stringstream sstream = std::stringstream(input);
+
+		if (sstream.rdbuf()->in_avail() == 0) { // If user input was empty
+			std::cout << "Defaulting to port 53000." << std::endl;
+			return 53000;
+		}
+		else {			
+			sstream >> port;
+
+			if (port < 1024 // These ports are system reserved
+				|| port > 65535) { // Maximum TCP port number
+				std::cout << "Invalid port number!" << std::endl;
+			}
+			else return port;
+		}
+	}
+}
 
 int main()
 {
-
+	int port = choosePort();
+	
+	// Bind TCP listener to port
 	sf::TcpListener listener;
-
-	// Bind to port
-
-	if (listener.listen(53000) != sf::Socket::Done) {
+	if (listener.listen(port) != sf::Socket::Done) {
 		std::cout << "Failed to bind to port! Please restart server." << std::endl;
 		return 1;
 	}
 
-	std::cout << "Attempting to find players..." << std::endl;
+	std::cout << "Your external IP appears to be: " << sf::IpAddress::getPublicAddress() << std::endl;
+
+	std::cout << "Attempting to find players (hit Ctrl+C to abort)..." << std::endl;
 
 	sf::TcpSocket clients[NUMPLAYERS];
 	for (int i = 0; i < NUMPLAYERS; i++) {
@@ -54,10 +85,9 @@ int main()
 
 
 	while(true){
-		// game loop
+		// Server Loop
 	}
 
 	std::cout << "Game over, server shutting down." << std::endl;
-	// Future - possibly let host hit y to let server start again?
     return 0;
 }

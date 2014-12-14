@@ -1,0 +1,42 @@
+TODO List
+
+Split into phases with ***
+[] indicate empty checkboxes
+[MM-DD-YY] indicates that an item has been completed as of MM-DD-YY
+If a phase is completed, a date will also appear next to its title
+
+Items in each phase should be kept in chronological order - if an item is completed before its predecessors, it should be shifted back to after the last completed item in its phase.
+
+***
+NETWORK INFRASTRUCTURE
+[12-03-14] Allow host to specify server port
+[12-03-14] Allow client to input server IP/port
+[] Standardized communication interface between client and server (packets with headers, CRITICAL)
+[] Allow server to wait indefinitely for player connections (not just until default TCP timeout)
+[] Allow player to provide username (note: potential problem with name length, charsets, duplicates!)
+[] Allow host to see who has connected to server prior to game start
+[] Inform player of connection status prior to game start
+[] Allow host to initiate gameplay
+[] Allow graceful terminatination of game by either client or server
+
+***
+FUNDAMENTAL GAME STRUCTURE (Server)
+[] Implement basic timing of rounds (2, "hanchan") and hands (4+) (general structure)
+[] Store and distribute tiles
+[] Implement basic player turn/seat cycle
+[] Receive and interpret player input each turn 
+[] Receive and interpret player input between turns (calls) (BEWARE: TIMING ISSUES LIKELY)
+[] Score player hands
+
+***
+FUNDAMENTAL GAME STRUCTURE (Client)
+[] Wait on gamestate updates from server (general)
+[] Receive and interpret server gamestate updates (general)
+[] Interpret and transmit player input (general)
+
+***
+CLIENT GUI
+[] Display game information (player names, seat winds, round wind, etc.)
+[] Allow player to select tile to discard each turn
+[] Allow player to call melds on other players' discards
+[] Allow player to declare Richii
