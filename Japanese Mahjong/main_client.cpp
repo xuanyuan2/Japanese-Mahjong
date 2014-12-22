@@ -55,7 +55,7 @@ int choosePort() {
 	while(true) {
 		int port; 
 
-		std::cout << "Please enter server port number: ";
+		std::cout << "Please enter server port number (or hit enter for default): ";
 
 		std::string input;
 		std::getline(std::cin, input);
@@ -81,13 +81,12 @@ int choosePort() {
 int main()
 {
 	// Connection attempt loop
+	sf::TcpSocket socket;
 	while (true) {
 		sf::IpAddress ip = chooseIP();
 		int port = choosePort();
 
-		sf::TcpSocket socket;
-
-		if (socket.connect(ip, port) == sf::Socket::Done) { // Attempt to connect
+		if (socket.connect(ip, port) != sf::Socket::Done) { // Attempt to connect
 			// connect() failed
 			std::cout << "Connection failed." << std::endl;
 		}
@@ -95,7 +94,8 @@ int main()
 	}
 
 	while(true) {
-		// Game loop
 	}
+	// Client class initialization goes here
+
     return 0;
 }

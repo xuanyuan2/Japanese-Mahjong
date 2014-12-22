@@ -37,7 +37,7 @@ int choosePort() {
 	while(true) {
 		int port; 
 
-		std::cout << "Please enter port number: ";
+		std::cout << "Please enter port number (or hit enter for default): ";
 
 		std::string input;
 		std::getline(std::cin, input);
@@ -76,17 +76,15 @@ int main()
 	std::cout << "Attempting to find players (hit Ctrl+C to abort)..." << std::endl;
 
 	sf::TcpSocket clients[NUMPLAYERS];
-	for (int i = 0; i < NUMPLAYERS; i++) {
+	for (int i = 1; i <= NUMPLAYERS; i++) {
 		listener.accept(clients[i]);
 		std::cout << "Player " << i << " has connected!" << std::endl;
 	}
 
 	std::cout << "All players have connected!" << std::endl;
 
-
-	while(true){
-		// Server Loop
-	}
+	while(true) {}
+	// Server class initialization here
 
 	std::cout << "Game over, server shutting down." << std::endl;
     return 0;

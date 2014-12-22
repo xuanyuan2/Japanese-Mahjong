@@ -9,10 +9,9 @@ Items in each phase should be kept in chronological order - if an item is comple
 
 ***
 NETWORK INFRASTRUCTURE
-[12-03-14] Allow host to specify server port
-[12-03-14] Allow client to input server IP/port
-[] Standardized communication interface between client and server (packets with headers, CRITICAL)
-[] Allow server to wait indefinitely for player connections (not just until default TCP timeout)
+[12-13-14] Allow host to specify server port
+[12-13-14] Allow client to input server IP/port
+[12-21-14] Standardized communication interface between client and server (packets with headers, CRITICAL)
 [] Allow player to provide username (note: potential problem with name length, charsets, duplicates!)
 [] Allow host to see who has connected to server prior to game start
 [] Inform player of connection status prior to game start
@@ -40,3 +39,8 @@ CLIENT GUI
 [] Allow player to select tile to discard each turn
 [] Allow player to call melds on other players' discards
 [] Allow player to declare Richii
+
+***
+FANCY STUFF
+[] Animate tile distribution
+[] Animate score screen
