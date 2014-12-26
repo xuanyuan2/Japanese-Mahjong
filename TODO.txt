@@ -12,9 +12,9 @@ NETWORK INFRASTRUCTURE
 [12-13-14] Allow host to specify server port
 [12-13-14] Allow client to input server IP/port
 [12-21-14] Standardized communication interface between client and server (packets with headers, CRITICAL)
-[] Allow player to provide username (note: potential problem with name length, charsets, duplicates!)
-[] Allow host to see who has connected to server prior to game start
-[] Inform player of connection status prior to game start
+[12-25-14] Allow player to provide username (note: potential problem with name length, charsets, duplicates!) *Basic implementation done
+[12-25-14] Allow host to see who has connected to server prior to game start
+[12-25-14] Inform player of connection status prior to game start
 [] Allow host to initiate gameplay
 [] Allow graceful terminatination of game by either client or server
 

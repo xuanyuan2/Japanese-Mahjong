@@ -2,8 +2,8 @@
 Designed by Xuan Yuan Huang, a desperate UCLA undergrad CS student.
 Copyright 2014 Xuan Yuan Huang
 
-Built with the SFML 2.1 Engine.
-SFML 2.1 is licensed under zlib/libpng. 
+Built with the SFML 2.2 Engine.
+SFML 2.2 is licensed under zlib/libpng. 
 
 For my code:
     This program is free software: you can redistribute it and/or modify
@@ -20,18 +20,20 @@ For my code:
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 Because I'm a desperate undergrad that needs to prove his worth.
 
-Developed in Visual Studio 2012 (thanks for the free copy, MS Dreamspark!).
+Developed in Visual Studio 2013 (thanks for the free copy, MS Dreamspark!).
 Visual Studio is, of course, Microsoft's proprietary IDE.
 
 This file handles the packaging of information sent and received between
 the server and the client into Mahjong Packets ("MPacket").
 */
 
+#ifndef MPACKET_H
+#define MPACKET_H
 #include <SFML/Network.hpp>
+#include <SFML/System/String.hpp>
 
 #include "../Tile.h"
 
-const int NUMPLAYERS = 4;
 const int MAXNUMOFTILES = 14; // Only dealers ever get this many tiles (at the start)
 
 enum MPacketHeader : sf::Int8 { 
@@ -47,17 +49,35 @@ class MPacket { // Base class of all Mpackets
 public:
 	sf::Int8 getHeader() { return m_header; } // Return this packet's header
 protected:
-	MPacket() {} // Protected constructor to provent instantiation of this base class
+	MPacket() {} // Protected constructor to prevent instantiation of this base class
 	sf::Int8 m_header; // Contains information on the MPacket type
 };
 
 class InitPacket : public MPacket {
 public:
-	InitPacket() { // TODO: Expand construtor to accept initialization info
+	InitPacket(sf::String pusername) {
 		m_header = INITIAL_INFO;
-	};
+		m_username = pusername;
+	}
+
+	InitPacket() {
+		m_header = INITIAL_INFO;
+	}
+
+	// Returns the username provided by the player
+	sf::String getUsername() { return m_username;  }
+
+	// SFML Packet << overload to support InitPacket
+	friend sf::Packet& operator<<(sf::Packet& packet, const InitPacket& initPacket) {
+		return packet << initPacket.m_username;
+	}
+
+	// SFML Packet >> overload to support InitPacket
+	friend sf::Packet& operator>>(sf::Packet& packet, InitPacket& initPacket) {
+		return packet >> initPacket.m_username;
+	}
 private:
-	// Initialization info goes here
+	sf::String m_username;
 };
 
 class StatePacket : public MPacket {
@@ -65,6 +85,15 @@ public:
 	StatePacket() {
 		m_header = STATE_UPDATE;
 	}
+
+	//// SFML Packet << overload to support
+	//friend sf::Packet& operator<<(sf::Packet& packet, const StatePacket& statePacket) {
+	//}
+
+	//// SFML Packet >> overload to support
+	//friend sf::Packet& operator>>(sf::Packet& packet, StatePacket& statePacket) {
+
+	//}
 private:
 	// State update info goes here
 };
@@ -75,16 +104,37 @@ public:
 		m_header = FIRST_HAND;
 	}
 	const Tile* getHand() { return hand; }
+
+	//// SFML Packet << overload to support
+	//friend sf::Packet& operator<<(sf::Packet& packet, const FirstHandPacket& fhPacket) {
+
+	//}
+
+	//// SFML Packet >> overload to support
+	//friend sf::Packet& operator>>(sf::Packet& packet, FirstHandPacket& fhPacket) {
+
+	//}
 private:
 	Tile hand[13];
 };
 
 class DrawPacket : public MPacket {
 public:
-	DrawPacket() {
+	DrawPacket(Tile pdraw) {
 		m_header = DRAW;
+		draw = pdraw;
 	}
 	const Tile getDraw() { return draw; }
+
+	//// SFML Packet << overload to support
+	//friend sf::Packet& operator<<(sf::Packet& packet, const DrawPacket& drawPacket) {
+
+	//}
+
+	//// SFML Packet >> overload to support
+	//friend sf::Packet& operator>>(sf::Packet& packet, DrawPacket& drawPacket) {
+
+	//}
 private:
 	Tile draw;
 };
@@ -95,6 +145,16 @@ public:
 		m_header = DISCARD_SELF;
 	}
 	const Tile getDiscard() { return discard; }
+
+	//// SFML Packet << overload to support
+	//friend sf::Packet& operator<<(sf::Packet& packet, const DiscardSelfPacket& dsPacket) {
+
+	//}
+
+	//// SFML Packet >> overload to support
+	//friend sf::Packet& operator>>(sf::Packet& packet, DiscardSelfPacket& dsPacket) {
+
+	//}
 private:
 	Tile discard;
 };
@@ -105,29 +165,18 @@ public:
 		m_header = DISCARD;
 	}
 	const Tile getDiscard() { return discard; }
+
+	//// SFML Packet << overload to support
+	//friend sf::Packet& operator<<(sf::Packet& packet, const DiscardPacket& dPacket) {
+
+	//}
+
+	//// SFML Packet >> overload to support
+	//friend sf::Packet& operator>>(sf::Packet& packet, DiscardPacket& dPacket) {
+
+	//}
 private:
 	Tile discard;
 };
 
-/*
-// SFML Packet << and >> overload to support MPackets
-sf::Packet& operator <<(sf::Packet& packet, const MPacket& mpacket) {
-	for (int i = 0; i < NUMPLAYERS; i++) {
-		packet << mpacket.scores[i];
-	}
-	for (int j = 0; j < MAXNUMOFTILES; j++) {
-		packet << mpacket.tiles[j];
-	}
-	return packet;
-}
-
-sf::Packet& operator >>(sf::Packet& packet, MPacket& mpacket) {
-	for (int i = 0; i < NUMPLAYERS; i++) {
-		packet >> mpacket.scores[i];
-	}
-	for (int j = 0; j < MAXNUMOFTILES; j++) {
-		packet >> mpacket.tiles[j];
-	}
-	return packet;
-}
-*/
+#endif

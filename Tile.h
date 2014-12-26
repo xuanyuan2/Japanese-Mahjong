@@ -2,8 +2,8 @@
 Designed by Xuan Yuan Huang, a desperate UCLA undergrad CS student.
 Copyright 2014 Xuan Yuan Huang
 
-Built with the SFML 2.1 Engine.
-SFML 2.1 is licensed under zlib/libpng. 
+Built with the SFML 2.2 Engine.
+SFML 2.2 is licensed under zlib/libpng. 
 
 For my code:
     This program is free software: you can redistribute it and/or modify
@@ -20,7 +20,7 @@ For my code:
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 Because I'm a desperate undergrad that needs to prove his worth.
 
-Developed in Visual Studio 2012 (thanks for the free copy, MS Dreamspark!).
+Developed in Visual Studio 2013 (thanks for the free copy, MS Dreamspark!).
 Visual Studio is, of course, Microsoft's proprietary IDE.
 
 This file defines the tiles used during play.
@@ -30,7 +30,7 @@ This file defines the tiles used during play.
 #define TILE_H
 #include <SFML/Network.hpp>
 
-enum class SUIT : sf::Int8 {
+enum SUITS : sf::Int8 {
 	PIN, // Also known as dots or circles
 	SOU, // Also known as bamboo
 	WAN, // Also known as characters
@@ -38,7 +38,7 @@ enum class SUIT : sf::Int8 {
 	DRAGON
 };
 
-enum class NUMBERS : sf::Int8 { // To avoid off-by-one errors
+enum NUMBERS : sf::Int8 { // May seem redundant, but helps with off-by-one
 	ONE,
 	TWO,
 	THREE,
@@ -47,35 +47,58 @@ enum class NUMBERS : sf::Int8 { // To avoid off-by-one errors
 	SIX,
 	SEVEN,
 	EIGHT,
-	NINE
+	NINE,
+	NaN // Not a Number
 };
 
-enum class WIND_TYPE : sf::Int8 {
+enum WINDS : sf::Int8 {
 	EAST,
 	SOUTH,
 	WEST,
-	NORTH
+	NORTH,
+	NaW // Not a Wind
 };
 
-enum class DRAGON_TYPE : sf::Int8 {
+enum DRAGONS : sf::Int8 {
 	WHITE,
 	GREEN,
-	RED
+	RED,
+	NaD // Not a Dragon
 };
 
 struct Tile {
+	// Basic constructor for convenience
+	Tile(SUITS psuit, NUMBERS pnumber, WINDS pwind, DRAGONS pdragon) :
+		suit(psuit),
+		number(pnumber),
+		wind(pwind),
+		dragon(pdragon)
+	{	}
+	Tile() {} // Default constructor does nothing
 	sf::Int8 suit;
+	sf::Int8 number;
 	sf::Int8 wind;
 	sf::Int8 dragon;
-	sf::Int8 number;
+
+	/* The following overloads are defined as friends of Tile. This is rather inelegant!
+	 * However, it allows the functions to be defined in Tile.h without encountering
+	 * duplicate definition errors with the linker.
+	 * Normally, you would work around this by simply defining these overloads in Tile.cpp,
+	 * but "Tile" is meant to be shared by two projects, requiring the even less elegant
+	 * solution of compiling Tile.cpp in both projects.
+	 */
+
+	// SFML Packet << overload to support tiles
+	friend sf::Packet& operator<<(sf::Packet& packet, const Tile& tile) {
+		return packet << tile.suit << tile.number << tile.wind << tile.dragon;
+	}
+
+	// SFML Packet >> overload to support tiles
+	friend sf::Packet& operator>>(sf::Packet& packet, Tile& tile) {
+		return packet >> tile.suit >> tile.number >> tile.wind >> tile.dragon;
+	}
 };
 
-// SFML Packet << and >> overload to support tiles
-sf::Packet& operator <<(sf::Packet& packet, const Tile& tile) {
-	return packet << tile.suit << tile.wind << tile.dragon << tile.number;
-}
 
-sf::Packet& operator >>(sf::Packet& packet, Tile& tile) {
-	return packet >> tile.suit >> tile.wind >> tile.dragon >> tile.number;
-}
+
 #endif

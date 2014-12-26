@@ -2,8 +2,8 @@
 Designed by Xuan Yuan Huang, a desperate UCLA undergrad CS student.
 Copyright 2014 Xuan Yuan Huang
 
-Built with the SFML 2.1 Engine.
-SFML 2.1 is licensed under zlib/libpng. 
+Built with the SFML 2.2 Engine.
+SFML 2.2 is licensed under zlib/libpng. 
 
 For my code:
     This program is free software: you can redistribute it and/or modify
@@ -20,12 +20,14 @@ For my code:
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 Because I'm a desperate undergrad that needs to prove his worth.
 
-Developed in Visual Studio 2012 (thanks for the free copy, MS Dreamspark!).
+Developed in Visual Studio 2013 (thanks for the free copy, MS Dreamspark!).
 Visual Studio is, of course, Microsoft's proprietary IDE.
 
 This file handles the operation of the client.
 */
 
+#ifndef CLIENT_H
+#define CLIENT_H
 #include <SFML/Network.hpp>
 
 #include "../Tile.h"
@@ -37,3 +39,4 @@ public:
 	void run(); // Order the client to run the game
 private:
 };
+#endif
