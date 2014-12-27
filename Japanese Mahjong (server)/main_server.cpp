@@ -34,6 +34,8 @@ This is the main file of the SERVER for Japanese Mahjong.
 
 const int NUMPLAYERS = 2; // Should actually be 4, of course
 
+sf::String usernames[NUMPLAYERS];
+
 // Host specifies server port. Returns the valid port chosen by the host.
 int choosePort() {
 	while(true) {
@@ -63,19 +65,63 @@ int choosePort() {
 }
 
 // Handles accepting an incoming client from listener into the clients[] array
-void acceptClient(sf::TcpListener& listener, sf::TcpSocket* clients, int i) {
-	listener.accept(*clients);
+// Stores usernames (includes dealing with duplicates)
+// Reports player connection
+// Informs player of prior connections
+void acceptClient(sf::TcpListener& listener, sf::TcpSocket* client, int index) {
+	listener.accept(*client);
 
+	// Receive information from player
 	sf::Packet packet;
-	if (clients->receive(packet) != sf::Socket::Done) {
-		// Packet receipt failed
+	if (client->receive(packet) != sf::Socket::Done) {
 		std::cout << "Packet transmission error!" << std::endl;
 		exit(1);
 	}
 	InitPacket initPacket;
 	packet >> initPacket;
+	sf::String username = initPacket.getUsername();
+	
+	// Ensure no duplicate usernames
+	int duplicates = 1;
+	for (int i = 0; i < index; i++) { // For previously connected players
+		if (usernames[i] == username) {
+			// Identical username detected!
+			if (duplicates == 1) { // First duplicate
+				username += std::to_string(duplicates);
+				duplicates++;
+			}
+			else { // Other duplicates already exist
+				duplicates++;
+				username = username.substring(0, username.getSize() - 1) + std::to_string(duplicates);
+			}
+		}
+	}
+	InitPacket newUsername; // Defaults to empty string, which client interprets as no change
+	if (duplicates >= 2) {
+		// Duplicates were found - send edited username
+		newUsername = InitPacket(username); 
+	}
+	packet.clear();
+	packet << newUsername;
+	if (client->send(packet) != sf::Socket::Done) {
+		std::cout << "Packet transmission error!" << std::endl;
+		exit(1);
+	}
 
-	std::cout << "Player " << i + 1 << ", named \"" << initPacket.getUsername().toAnsiString() << "\", has connected from " << clients->getRemoteAddress() << "!" << std::endl;
+	// Send player information on players that have already connected
+	packet.clear();
+	packet << (sf::Int8)index; // Number of player info packets to be sent; also player #
+	for (int i = 0; i < index; i++) {
+		InitPacket player(usernames[i]);
+		packet << player;
+	}
+	if (client->send(packet) != sf::Socket::Done) {
+		std::cout << "Packet transmission error!" << std::endl;
+		exit(1);
+	}
+
+	usernames[index] = username; // Store the correct username away
+	std::cout << "Player " << index + 1 << ", named \"" << username.toAnsiString() << "\", has connected from " << client->getRemoteAddress() << "!" << std::endl;
 }
 
 int main()
@@ -98,6 +144,17 @@ int main()
 	sf::TcpSocket clients[NUMPLAYERS];
 	for (int i = 0; i < NUMPLAYERS; i++) {
 		acceptClient(listener, &(clients[i]), i);
+
+		// Inform clients about the newest client to join
+		InitPacket newPlayer(usernames[i]);
+		sf::Packet packet;
+		packet << newPlayer;
+		for (int j = 0; j < i; j++) {
+			if (clients[j].send(packet) != sf::Socket::Done) {
+				std::cout << "Packet transmission failed!" << std::endl;
+				return 1;
+			}
+		}
 	}
 
 	std::cout << "All players have connected!" << std::endl;

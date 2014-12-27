@@ -64,7 +64,7 @@ public:
 		m_header = INITIAL_INFO;
 	}
 
-	// Returns the username provided by the player
+	// Returns the username provided by/to the player
 	sf::String getUsername() { return m_username;  }
 
 	// SFML Packet << overload to support InitPacket

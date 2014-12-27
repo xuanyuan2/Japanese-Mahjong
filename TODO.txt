@@ -15,7 +15,7 @@ NETWORK INFRASTRUCTURE
 [12-25-14] Allow player to provide username (note: potential problem with name length, charsets, duplicates!) *Basic implementation done
 [12-25-14] Allow host to see who has connected to server prior to game start
 [12-25-14] Inform player of connection status prior to game start
-[] Inform players of server status (number of players, etc.)
+[12-26-14] Inform players of server status (number of players, etc.)
 [] Allow host to initiate gameplay
 [] Allow graceful terminatination of game by either client or server
 

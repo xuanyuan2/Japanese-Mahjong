@@ -33,7 +33,10 @@ This is the main file of the CLIENT of the Japanese Mahjong program.
 #include "../MPacket.h"
 #include "../Tile.h"
 
+const int NUMPLAYERS = 2;
+
 sf::String username;
+sf::Int8 playerNo;
 
 // Player specifies his/her username
 sf::String chooseUsername() {
@@ -115,19 +118,65 @@ void connectToServer(sf::TcpSocket& socket) {
 			// connect() succeeded
 			std::cout << "Connection succeeded." << std::endl;
 
+			// Send username
 			InitPacket initPacket = InitPacket(username);
 			sf::Packet packet;
 			packet << initPacket;
-
 			if (socket.send(packet) != sf::Socket::Done) {
-				// Packet delivery failed
 				std::cout << "Packet transmission error!" << std::endl;
 				exit(1);
+			}
+
+			// Check if a new username has arrived
+			packet.clear();
+			if (socket.receive(packet) != sf::Socket::Done) {
+				std::cout << "Packet transmission error!" << std::endl;
+				exit(1);
+			}
+			// Packet receipt succeeded
+			sf::String newUsername;
+			packet >> newUsername;
+			if (!newUsername.isEmpty()) { // Server enforced name change
+				username = newUsername; // Save new username
+				std::cout << "Player(s) already exist on the server with your username!" << std::endl
+					<< "Your username has been changed to: " << username.toAnsiString() << std::endl;
+			}
+
+			// Parse information on other players in the server
+			packet.clear();
+			if (socket.receive(packet) != sf::Socket::Done) {
+				std::cout << "Packet transmission error!" << std::endl;
+				exit(1);
+			}
+			// Packet receipt succeeded
+			packet >> playerNo;
+			std::cout << "You are Player " << (int)playerNo + 1 << "!" << std::endl;
+			for (int i = 0; i < playerNo; i++) {
+				InitPacket initPacket;
+				packet >> initPacket;
+				std::cout << "Player " << i + 1 << " is \"" << initPacket.getUsername().toAnsiString() << "\"." << std::endl;
 			}
 
 			return;
 		}
 	}
+}
+
+// Listen for more players from the server
+void waitOnMorePlayers(sf::TcpSocket& socket) {
+	for (int i = playerNo + 1; i < NUMPLAYERS; i++) {
+		sf::Packet packet;
+		if (socket.receive(packet) != sf::Socket::Done) {
+			std::cout << "Packet receipt failed!" << std::endl;
+			exit(1);
+		}
+		else {
+			InitPacket newPlayer;
+			packet >> newPlayer;
+			std::cout << "Player " << i + 1 << " is \"" << newPlayer.getUsername().toAnsiString() << "\"." << std::endl;
+		}
+	}
+	std::cout << "All players have connected!" << std::endl;
 }
 
 int main()
@@ -138,6 +187,7 @@ int main()
 
 	sf::TcpSocket socket;
 	connectToServer(socket);
+	waitOnMorePlayers(socket);
 
 	while(true) {
 	}
