@@ -33,6 +33,8 @@ This is the main file of the CLIENT of the Japanese Mahjong program.
 #include "../MPacket.h"
 #include "../Tile.h"
 
+sf::String username;
+
 // Player specifies his/her username
 sf::String chooseUsername() {
 	while (true) {
@@ -87,21 +89,15 @@ int choosePort() {
 	}
 }
 
-int main()
-{
-	std::cout << "Welcome to Japanese Mahjong!" << std::endl;
-
-	sf::String username = chooseUsername();
-
-	// Connection attempt loop
-
-	sf::TcpSocket socket;
-	bool loop = true;
-	while (loop) {
+// Handles connecting to a server on socket
+void connectToServer(sf::TcpSocket& socket) {
+	// Loop until connection succeeds
+	while (true) {
 		sf::IpAddress ip = chooseIP();
 		int port = choosePort();
 
-		if (socket.connect(ip, port) != sf::Socket::Done) { // Attempt to connect
+		// Attempt to connect
+		if (socket.connect(ip, port) != sf::Socket::Done) { 
 			// connect() failed
 			std::cout << "Connection failed." << std::endl;
 		}
@@ -109,19 +105,29 @@ int main()
 			// connect() succeeded
 			std::cout << "Connection succeeded." << std::endl;
 
-			InitPacket initPacket = InitPacket(username);			
+			InitPacket initPacket = InitPacket(username);
 			sf::Packet packet;
 			packet << initPacket;
 
 			if (socket.send(packet) != sf::Socket::Done) {
 				// Packet delivery failed
 				std::cout << "Packet transmission error!" << std::endl;
-				return 1;
+				exit(1);
 			}
 
-			loop = false;
+			return;
 		}
 	}
+}
+
+int main()
+{
+	std::cout << "Welcome to Japanese Mahjong!" << std::endl;
+
+	username = chooseUsername();
+
+	sf::TcpSocket socket;
+	connectToServer(socket);
 
 	while(true) {
 	}

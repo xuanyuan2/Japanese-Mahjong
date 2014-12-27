@@ -32,7 +32,7 @@ This is the main file of the SERVER for Japanese Mahjong.
 
 #include "../MPacket.h"
 
-const int NUMPLAYERS = 1; // Should actually be 4, of course
+const int NUMPLAYERS = 2; // Should actually be 4, of course
 
 // Host specifies server port. Returns the valid port chosen by the host.
 int choosePort() {
@@ -62,6 +62,22 @@ int choosePort() {
 	}
 }
 
+// Handles accepting an incoming client from listener into the clients[] array
+void acceptClient(sf::TcpListener& listener, sf::TcpSocket* clients, int i) {
+	listener.accept(*clients);
+
+	sf::Packet packet;
+	if (clients->receive(packet) != sf::Socket::Done) {
+		// Packet receipt failed
+		std::cout << "Packet transmission error!" << std::endl;
+		exit(1);
+	}
+	InitPacket initPacket;
+	packet >> initPacket;
+
+	std::cout << "Player " << i + 1 << ", named \"" << initPacket.getUsername().toAnsiString() << "\", has connected from " << clients->getRemoteAddress() << "!" << std::endl;
+}
+
 int main()
 {
 	std::cout << "Welcome to the Japanese Mahjong server!" << std::endl;
@@ -81,19 +97,7 @@ int main()
 
 	sf::TcpSocket clients[NUMPLAYERS];
 	for (int i = 0; i < NUMPLAYERS; i++) {
-		listener.accept(clients[i]);
-
-		sf::Packet packet;
-		if (clients[i].receive(packet) != sf::Socket::Done) {
-			// Packet receipt failed
-			std::cout << "Packet transmission error!" << std::endl;
-			return 1;
-		}
-		InitPacket initPacket;
-		packet >> initPacket;
-
-
-		std::cout << "Player " << i+1 << ", named \"" << initPacket.getUsername().toAnsiString() << "\", has connected from " << clients[i].getRemoteAddress() << "!" << std::endl;
+		acceptClient(listener, &(clients[i]), i);
 	}
 
 	std::cout << "All players have connected!" << std::endl;
