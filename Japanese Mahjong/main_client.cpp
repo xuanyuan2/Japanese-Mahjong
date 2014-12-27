@@ -38,10 +38,20 @@ sf::String username;
 // Player specifies his/her username
 sf::String chooseUsername() {
 	while (true) {
-		std::cout << "Please choose a username: ";
+		std::cout << "Please enter a username: ";
 		
 		std::string input;
 		std::getline(std::cin, input);
+
+		if (input.empty()) {
+			std::cout << "Empty usernames are not acceptable." << std::endl;
+			continue;
+		}
+		else if (input.find_first_not_of(' ') == std::string::npos) {
+			// There are no non-whitespace characters in the string
+			std::cout << "Username should not consist solely of whitespaces." << std::endl;
+			continue;
+		}
 
 		sf::String result(input);
 		return result;
