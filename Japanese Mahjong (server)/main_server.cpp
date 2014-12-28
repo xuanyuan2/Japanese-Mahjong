@@ -153,10 +153,8 @@ int main()
 
 	std::cout << "All players have connected!" << std::endl;
 
-	std::cout << "Press enter to begin.";
-
-	std::string input; // Not actually used
-	std::getline(std::cin, input);
+	std::cout << "Press ENTER to begin.";
+	std::cin.ignore(std::numeric_limits <std::streamsize> ::max(), '\n');
 
 	while(true) {}
 	// Server class initialization here

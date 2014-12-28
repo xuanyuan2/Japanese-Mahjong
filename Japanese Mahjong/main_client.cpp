@@ -185,8 +185,8 @@ int main()
 	connectToServer(socket);
 	waitOnMorePlayers(socket);
 
+	std::cout << "Waiting for server host to start game..." << std::endl;
 	while(true) {
-		std::cout << "Waiting for server host to start game..." << std::endl;
 	}
 	// Client class initialization goes here
 
