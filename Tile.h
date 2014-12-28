@@ -28,75 +28,69 @@ This file defines the tiles used during play.
 
 #ifndef TILE_H
 #define TILE_H
-#include <SFML/Network.hpp>
 
-enum SUITS : sf::Int8 {
-	PIN, // Also known as dots or circles
-	SOU, // Also known as bamboo
-	WAN, // Also known as characters
-	WIND,
-	DRAGON
+// Inspired by the tile data structure by github user "henryyang42"
+/* Japanese Mahjong typically has 136 tiles - 4 for each of 34 different types:
+ * 108 numbered tiles (1-9 inclusive) are divided into three suits - pin (dots),
+ *   sou (bamboo), and wan (characters) - for a total of 27 kinds of tile
+ * 16 wind tiles (east, south, west, and north)
+ * 12 dragon tiles (white, green, and red)
+ * 
+ * Each tile in the game can thus be assigned a unique number from 0 to 135 inclusive.
+ * Each KIND of tile can be assigned a unique number from 0 to 34 inclusive.
+ * The tiles are grouped by type in order, so that for any type of tile x in [0,34],
+ * its four copies can be found in [0,135] at 4x, 4x+1, 4x+2, and 4x+3.
+ *
+ * In this version of the game, there are also three red "dora" - one single specially
+ * colored number 5 tile per suit that boosts the value of a winning hand.
+ * This red tile is stored as the last of the four of its type.
+ */
+
+enum TileTypes {
+	PIN_1,
+	PIN_2,
+	PIN_3,
+	PIN_4,
+	PIN_5,
+	PIN_6,
+	PIN_7,
+	PIN_8,
+	PIN_9,
+	SOU_1,
+	SOU_2,
+	SOU_3,
+	SOU_4,
+	SOU_5,
+	SOU_6,
+	SOU_7,
+	SOU_8,
+	SOU_9,
+	WAN_1,
+	WAN_2,
+	WAN_3,
+	WAN_4,
+	WAN_5,
+	WAN_6,
+	WAN_7,
+	WAN_8,
+	WAN_9,
+	WIND_E,
+	WIND_S,
+	WIND_N,
+	WIND_W,
+	DRAG_W,
+	DRAG_G,
+	DRAG_R
 };
 
-enum NUMBERS : sf::Int8 { // May seem redundant, but helps with off-by-one
-	ONE,
-	TWO,
-	THREE,
-	FOUR,
-	FIVE,
-	SIX,
-	SEVEN,
-	EIGHT,
-	NINE,
-	NaN // Not a Number
-};
-
-enum WINDS : sf::Int8 {
-	EAST,
-	SOUTH,
-	WEST,
-	NORTH,
-	NaW // Not a Wind
-};
-
-enum DRAGONS : sf::Int8 {
-	WHITE,
-	GREEN,
-	RED,
-	NaD // Not a Dragon
-};
-
-struct Tile {
-	// Basic constructor for convenience
-	Tile(SUITS psuit, NUMBERS pnumber, WINDS pwind, DRAGONS pdragon) :
-		suit(psuit),
-		number(pnumber),
-		wind(pwind),
-		dragon(pdragon)
-	{	}
-	Tile() {} // Default constructor does nothing
-	sf::Int8 suit;
-	sf::Int8 number;
-	sf::Int8 wind;
-	sf::Int8 dragon;
-
-	/* The following overloads are defined as friends of Tile. This is rather inelegant!
-	 * However, it allows the functions to be defined in Tile.h without encountering
-	 * duplicate definition errors with the linker.
-	 * Normally, you would work around this by simply defining these overloads in Tile.cpp,
-	 * but "Tile" is meant to be shared by two projects, requiring the even less elegant
-	 * solution of compiling Tile.cpp in both projects.
-	 */
-
-	// SFML Packet << overload to support tiles
-	friend sf::Packet& operator<<(sf::Packet& packet, const Tile& tile) {
-		return packet << tile.suit << tile.number << tile.wind << tile.dragon;
-	}
-
-	// SFML Packet >> overload to support tiles
-	friend sf::Packet& operator>>(sf::Packet& packet, Tile& tile) {
-		return packet >> tile.suit >> tile.number >> tile.wind >> tile.dragon;
-	}
-};
+sf::Int8 isValidTile(sf::Int8 tile);
+sf::Int8 typeOf(sf::Int8 tile);
+bool isNumber(sf::Int8 tile);
+bool isPin(sf::Int8 tile);
+bool isSou(sf::Int8 tile);
+bool isWan(sf::Int8 tile);
+bool isWind(sf::Int8 tile);
+bool isDragon(sf::Int8 tile);
+bool isRed(sf::Int8 tile);
 
 #endif

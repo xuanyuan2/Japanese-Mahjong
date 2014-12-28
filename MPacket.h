@@ -75,7 +75,7 @@ public:
 	FirstHandPacket() {
 		m_header = FIRST_HAND;
 	}
-	const Tile* getHand() { return hand; }
+	const sf::Int8* getHand() { return hand; }
 
 	//// SFML Packet << overload to support
 	//friend sf::Packet& operator<<(sf::Packet& packet, const FirstHandPacket& fhPacket) {
@@ -87,16 +87,16 @@ public:
 
 	//}
 private:
-	Tile hand[13];
+	sf::Int8 hand[13];
 };
 
 class DrawPacket : public MPacket {
 public:
-	DrawPacket(Tile pdraw) {
+	DrawPacket(sf::Int8 pdraw) {
 		m_header = DRAW;
 		draw = pdraw;
 	}
-	const Tile getDraw() { return draw; }
+	const sf::Int8 getDraw() { return draw; }
 
 	//// SFML Packet << overload to support
 	//friend sf::Packet& operator<<(sf::Packet& packet, const DrawPacket& drawPacket) {
@@ -108,7 +108,7 @@ public:
 
 	//}
 private:
-	Tile draw;
+	sf::Int8 draw;
 };
 
 class DiscardSelfPacket : public MPacket {
@@ -116,7 +116,7 @@ public:
 	DiscardSelfPacket() {
 		m_header = DISCARD_SELF;
 	}
-	const Tile getDiscard() { return discard; }
+	const sf::Int8 getDiscard() { return discard; }
 
 	//// SFML Packet << overload to support
 	//friend sf::Packet& operator<<(sf::Packet& packet, const DiscardSelfPacket& dsPacket) {
@@ -128,7 +128,7 @@ public:
 
 	//}
 private:
-	Tile discard;
+	sf::Int8 discard;
 };
 
 class DiscardPacket : public MPacket {
@@ -136,7 +136,7 @@ public:
 	DiscardPacket() {
 		m_header = DISCARD;
 	}
-	const Tile getDiscard() { return discard; }
+	const sf::Int8 getDiscard() { return discard; }
 
 	//// SFML Packet << overload to support
 	//friend sf::Packet& operator<<(sf::Packet& packet, const DiscardPacket& dPacket) {
@@ -148,7 +148,7 @@ public:
 
 	//}
 private:
-	Tile discard;
+	sf::Int8 discard;
 };
 
 #endif
