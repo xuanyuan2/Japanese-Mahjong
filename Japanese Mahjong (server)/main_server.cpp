@@ -66,12 +66,12 @@ int choosePort() {
 // Stores usernames (includes dealing with duplicates)
 // Reports player connection
 // Informs player of prior connections
-void acceptClient(sf::TcpListener& listener, sf::TcpSocket* client, int index) {
-	listener.accept(*client);
+void acceptClient(sf::TcpListener& listener, sf::TcpSocket& client, int index) {
+	listener.accept(client);
 
 	// Receive information from player
 	sf::Packet packet;
-	if (client->receive(packet) != sf::Socket::Done) {
+	if (client.receive(packet) != sf::Socket::Done) {
 		std::cout << "Packet transmission error!" << std::endl;
 		exit(1);
 	}
@@ -100,7 +100,7 @@ void acceptClient(sf::TcpListener& listener, sf::TcpSocket* client, int index) {
 	}
 	packet.clear();
 	packet << newUsername;
-	if (client->send(packet) != sf::Socket::Done) {
+	if (client.send(packet) != sf::Socket::Done) {
 		std::cout << "Packet transmission error!" << std::endl;
 		exit(1);
 	}
@@ -110,13 +110,13 @@ void acceptClient(sf::TcpListener& listener, sf::TcpSocket* client, int index) {
 	packet << (sf::Int8)index; // Number of player info packets to be sent; also player #
 	for (int i = 0; i < index; i++)
 		packet << usernames[i];
-	if (client->send(packet) != sf::Socket::Done) {
+	if (client.send(packet) != sf::Socket::Done) {
 		std::cout << "Packet transmission error!" << std::endl;
 		exit(1);
 	}
 
 	usernames[index] = username; // Store the correct username away
-	std::cout << "Player " << index + 1 << ", named \"" << username.toAnsiString() << "\", has connected from " << client->getRemoteAddress() << "!" << std::endl;
+	std::cout << "Player " << index + 1 << ", named \"" << username.toAnsiString() << "\", has connected from " << client.getRemoteAddress() << "!" << std::endl;
 }
 
 int main()
@@ -138,7 +138,7 @@ int main()
 
 	sf::TcpSocket clients[NUMPLAYERS];
 	for (int i = 0; i < NUMPLAYERS; i++) {
-		acceptClient(listener, &(clients[i]), i);
+		acceptClient(listener, clients[i], i);
 
 		// Inform clients about the newest client to join
 		sf::Packet packet;

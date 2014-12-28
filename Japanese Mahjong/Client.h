@@ -35,8 +35,9 @@ This file handles the operation of the client.
 
 class Client {
 public:
-	Client(sf::TcpSocket server); // Constructor for client class
+	Client(sf::TcpSocket& server); // Constructor for client class
 	void run(); // Order the client to run the game
 private:
+	sf::TcpSocket& m_server;
 };
 #endif

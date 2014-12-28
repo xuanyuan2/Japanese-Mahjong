@@ -92,11 +92,11 @@ private:
 
 class DrawPacket : public MPacket {
 public:
-	DrawPacket(sf::Int8 pdraw) {
+	DrawPacket(sf::Int8 draw) {
 		m_header = DRAW;
-		draw = pdraw;
+		m_draw = draw;
 	}
-	const sf::Int8 getDraw() { return draw; }
+	const sf::Int8 getDraw() { return m_draw; }
 
 	//// SFML Packet << overload to support
 	//friend sf::Packet& operator<<(sf::Packet& packet, const DrawPacket& drawPacket) {
@@ -108,7 +108,7 @@ public:
 
 	//}
 private:
-	sf::Int8 draw;
+	sf::Int8 m_draw;
 };
 
 class DiscardSelfPacket : public MPacket {
@@ -116,7 +116,7 @@ public:
 	DiscardSelfPacket() {
 		m_header = DISCARD_SELF;
 	}
-	const sf::Int8 getDiscard() { return discard; }
+	const sf::Int8 getDiscard() { return m_discard; }
 
 	//// SFML Packet << overload to support
 	//friend sf::Packet& operator<<(sf::Packet& packet, const DiscardSelfPacket& dsPacket) {
@@ -128,7 +128,7 @@ public:
 
 	//}
 private:
-	sf::Int8 discard;
+	sf::Int8 m_discard;
 };
 
 class DiscardPacket : public MPacket {
@@ -136,7 +136,7 @@ public:
 	DiscardPacket() {
 		m_header = DISCARD;
 	}
-	const sf::Int8 getDiscard() { return discard; }
+	const sf::Int8 getDiscard() { return m_discard; }
 
 	//// SFML Packet << overload to support
 	//friend sf::Packet& operator<<(sf::Packet& packet, const DiscardPacket& dPacket) {
@@ -148,7 +148,7 @@ public:
 
 	//}
 private:
-	sf::Int8 discard;
+	sf::Int8 m_discard;
 };
 
 #endif

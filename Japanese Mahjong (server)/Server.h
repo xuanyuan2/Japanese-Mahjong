@@ -33,13 +33,13 @@ This file handles the operation of the server.
 
 class Server {
 public:
-	Server(sf::TcpSocket *pclients, int pNUMPLAYERS); // Server constructor
+	Server(sf::TcpSocket *clients, int NUMPLAYERS); // Server constructor
 	void run(); // Order the server to run the game
 private:
 	// Private Methods
 
 
 	// Private variables
-	sf::TcpSocket *clients;
-	int NUMPLAYERS;
+	sf::TcpSocket* m_clients; // Array of sockets connected to clients
+	int m_NUMPLAYERS;
 };
