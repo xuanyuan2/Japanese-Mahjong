@@ -99,6 +99,4 @@ struct Tile {
 	}
 };
 
-
-
 #endif

@@ -159,6 +159,11 @@ int main()
 
 	std::cout << "All players have connected!" << std::endl;
 
+	std::cout << "Press enter to begin.";
+
+	std::string input; // Not actually used
+	std::getline(std::cin, input);
+
 	while(true) {}
 	// Server class initialization here
 
