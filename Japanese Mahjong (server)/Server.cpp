@@ -28,5 +28,7 @@ This file handles the operation of the server.
 
 #include "Server.h"
 
+void Server::run() {
 
+}
 

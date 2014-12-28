@@ -31,6 +31,7 @@ This is the main file of the CLIENT of the Japanese Mahjong program.
 #include <SFML/Network/Socket.hpp>
 
 #include "../Tile.h"
+#include "Client.h"
 
 const int NUMPLAYERS = 2;
 
@@ -186,9 +187,16 @@ int main()
 	waitOnMorePlayers(socket);
 
 	std::cout << "Waiting for server host to start game..." << std::endl;
-	while(true) {
+	// Wait for (empty) packet declaring start of game
+	sf::Packet packet;
+	if (socket.receive(packet) != sf::Socket::Done) { 
+		std::cout << "Packet transmission failed!" << std::endl;
+		return 1;
 	}
-	// Client class initialization goes here
+
+	// Start game
+	Client client(socket);
+	client.run();
 
     return 0;
 }

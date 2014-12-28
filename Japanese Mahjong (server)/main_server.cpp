@@ -30,6 +30,8 @@ This is the main file of the SERVER for Japanese Mahjong.
 #include <SFML/Network.hpp>
 #include <SFML/Network/IpAddress.hpp>
 
+#include "Server.h"
+
 const int NUMPLAYERS = 2; // Should actually be 4, of course
 
 sf::String usernames[NUMPLAYERS];
@@ -62,10 +64,11 @@ int choosePort() {
 	}
 }
 
-// Handles accepting an incoming client from listener into the clients[] array
-// Stores usernames (includes dealing with duplicates)
-// Reports player connection
-// Informs player of prior connections
+/* Handles accepting an incoming client from listener into the clients[] array
+ * Stores usernames (includes dealing with duplicates)
+ * Reports player connection
+ * Informs player of prior connections
+ */
 void acceptClient(sf::TcpListener& listener, sf::TcpSocket& client, int index) {
 	listener.accept(client);
 
@@ -156,8 +159,18 @@ int main()
 	std::cout << "Press ENTER to begin.";
 	std::cin.ignore(std::numeric_limits <std::streamsize> ::max(), '\n');
 
-	while(true) {}
-	// Server class initialization here
+	// Send out the (empty) packet allowing clients to begin
+	sf::Packet packet;
+	for (int i = 0; i < NUMPLAYERS; i++) {
+		if (clients[i].send(packet) != sf::Socket::Done) {
+			std::cout << "Packet transmission failed!" << std::endl;
+			return 1;
+		}
+	}
+
+	// Initialize and run the server
+	Server server(clients, NUMPLAYERS);
+	server.run();
 
 	std::cout << "Game over, server shutting down." << std::endl;
     return 0;
