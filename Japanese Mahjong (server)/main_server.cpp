@@ -30,8 +30,6 @@ This is the main file of the SERVER for Japanese Mahjong.
 #include <SFML/Network.hpp>
 #include <SFML/Network/IpAddress.hpp>
 
-#include "../MPacket.h"
-
 const int NUMPLAYERS = 2; // Should actually be 4, of course
 
 sf::String usernames[NUMPLAYERS];
@@ -77,9 +75,8 @@ void acceptClient(sf::TcpListener& listener, sf::TcpSocket* client, int index) {
 		std::cout << "Packet transmission error!" << std::endl;
 		exit(1);
 	}
-	InitPacket initPacket;
-	packet >> initPacket;
-	sf::String username = initPacket.getUsername();
+	sf::String username;
+	packet >> username;
 	
 	// Ensure no duplicate usernames
 	int duplicates = 1;
@@ -87,7 +84,7 @@ void acceptClient(sf::TcpListener& listener, sf::TcpSocket* client, int index) {
 		if (usernames[i] == username) {
 			// Identical username detected!
 			if (duplicates == 1) { // First duplicate
-				username += std::to_string(duplicates);
+				username += std::to_string(duplicates); // Adds a "1" to the end of the name
 				duplicates++;
 			}
 			else { // Other duplicates already exist
@@ -96,10 +93,10 @@ void acceptClient(sf::TcpListener& listener, sf::TcpSocket* client, int index) {
 			}
 		}
 	}
-	InitPacket newUsername; // Defaults to empty string, which client interprets as no change
+	sf::String newUsername; // Defaults to empty string, which client interprets as no change
 	if (duplicates >= 2) {
 		// Duplicates were found - send edited username
-		newUsername = InitPacket(username); 
+		newUsername = (username); 
 	}
 	packet.clear();
 	packet << newUsername;
@@ -111,10 +108,8 @@ void acceptClient(sf::TcpListener& listener, sf::TcpSocket* client, int index) {
 	// Send player information on players that have already connected
 	packet.clear();
 	packet << (sf::Int8)index; // Number of player info packets to be sent; also player #
-	for (int i = 0; i < index; i++) {
-		InitPacket player(usernames[i]);
-		packet << player;
-	}
+	for (int i = 0; i < index; i++)
+		packet << usernames[i];
 	if (client->send(packet) != sf::Socket::Done) {
 		std::cout << "Packet transmission error!" << std::endl;
 		exit(1);
@@ -146,9 +141,8 @@ int main()
 		acceptClient(listener, &(clients[i]), i);
 
 		// Inform clients about the newest client to join
-		InitPacket newPlayer(usernames[i]);
 		sf::Packet packet;
-		packet << newPlayer;
+		packet << usernames[i];
 		for (int j = 0; j < i; j++) {
 			if (clients[j].send(packet) != sf::Socket::Done) {
 				std::cout << "Packet transmission failed!" << std::endl;

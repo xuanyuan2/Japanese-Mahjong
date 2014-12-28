@@ -37,7 +37,6 @@ the server and the client into Mahjong Packets ("MPacket").
 const int MAXNUMOFTILES = 14; // Only dealers ever get this many tiles (at the start)
 
 enum MPacketHeader : sf::Int8 { 
-	INITIAL_INFO, // The initial information all players receive
 	STATE_UPDATE, // This packet contains information about players
 	FIRST_HAND, // Indicates this packet contains the player's first of tiles
 	DRAW, // Server sending player information on draw
@@ -51,33 +50,6 @@ public:
 protected:
 	MPacket() {} // Protected constructor to prevent instantiation of this base class
 	sf::Int8 m_header; // Contains information on the MPacket type
-};
-
-class InitPacket : public MPacket {
-public:
-	InitPacket(sf::String pusername) {
-		m_header = INITIAL_INFO;
-		m_username = pusername;
-	}
-
-	InitPacket() {
-		m_header = INITIAL_INFO;
-	}
-
-	// Returns the username provided by/to the player
-	sf::String getUsername() { return m_username;  }
-
-	// SFML Packet << overload to support InitPacket
-	friend sf::Packet& operator<<(sf::Packet& packet, const InitPacket& initPacket) {
-		return packet << initPacket.m_username;
-	}
-
-	// SFML Packet >> overload to support InitPacket
-	friend sf::Packet& operator>>(sf::Packet& packet, InitPacket& initPacket) {
-		return packet >> initPacket.m_username;
-	}
-private:
-	sf::String m_username;
 };
 
 class StatePacket : public MPacket {

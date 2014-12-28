@@ -154,3 +154,8 @@ $RECYCLE.BIN/
 
 # Mac desktop service store files
 .DS_Store
+
+
+# Added by Xuan Yuan Huang for sanity
+*.sln
+*.vcxproj*

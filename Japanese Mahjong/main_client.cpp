@@ -30,7 +30,6 @@ This is the main file of the CLIENT of the Japanese Mahjong program.
 #include <SFML/Network.hpp>
 #include <SFML/Network/Socket.hpp>
 
-#include "../MPacket.h"
 #include "../Tile.h"
 
 const int NUMPLAYERS = 2;
@@ -119,9 +118,8 @@ void connectToServer(sf::TcpSocket& socket) {
 			std::cout << "Connection succeeded." << std::endl;
 
 			// Send username
-			InitPacket initPacket = InitPacket(username);
 			sf::Packet packet;
-			packet << initPacket;
+			packet << username;
 			if (socket.send(packet) != sf::Socket::Done) {
 				std::cout << "Packet transmission error!" << std::endl;
 				exit(1);
@@ -133,7 +131,6 @@ void connectToServer(sf::TcpSocket& socket) {
 				std::cout << "Packet transmission error!" << std::endl;
 				exit(1);
 			}
-			// Packet receipt succeeded
 			sf::String newUsername;
 			packet >> newUsername;
 			if (!newUsername.isEmpty()) { // Server enforced name change
@@ -148,13 +145,12 @@ void connectToServer(sf::TcpSocket& socket) {
 				std::cout << "Packet transmission error!" << std::endl;
 				exit(1);
 			}
-			// Packet receipt succeeded
 			packet >> playerNo;
 			std::cout << "You are Player " << (int)playerNo + 1 << "!" << std::endl;
 			for (int i = 0; i < playerNo; i++) {
-				InitPacket initPacket;
-				packet >> initPacket;
-				std::cout << "Player " << i + 1 << " is \"" << initPacket.getUsername().toAnsiString() << "\"." << std::endl;
+				sf::String otherPlayerUsername;
+				packet >> otherPlayerUsername;
+				std::cout << "Player " << i + 1 << " is \"" << otherPlayerUsername.toAnsiString() << "\"." << std::endl;
 			}
 
 			return;
@@ -171,9 +167,9 @@ void waitOnMorePlayers(sf::TcpSocket& socket) {
 			exit(1);
 		}
 		else {
-			InitPacket newPlayer;
-			packet >> newPlayer;
-			std::cout << "Player " << i + 1 << " is \"" << newPlayer.getUsername().toAnsiString() << "\"." << std::endl;
+			sf::String newPlayerUsername;
+			packet >> newPlayerUsername;
+			std::cout << "Player " << i + 1 << " is \"" << newPlayerUsername.toAnsiString() << "\"." << std::endl;
 		}
 	}
 	std::cout << "All players have connected!" << std::endl;
