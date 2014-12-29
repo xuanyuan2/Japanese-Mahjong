@@ -30,10 +30,6 @@ This file handles the operation of the client.
 
 #include "Client.h"
 
-Client::Client(sf::TcpSocket& server) : m_server(server) {
-
-}
-
 void Client::run() {
 	// Test code from SFML
 	// create the window

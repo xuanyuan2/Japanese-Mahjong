@@ -158,7 +158,7 @@ int connectToServer(sf::TcpSocket& socket, sf::String& username) {
 }
 
 // Listen for more players from the server
-void waitOnMorePlayers(sf::TcpSocket& socket, sf::Int8 playerNo) {
+void waitOnMorePlayers(sf::TcpSocket& socket, sf::Int8 playerNo, sf::String usernames[]) {
 	for (int i = playerNo + 1; i < NUMPLAYERS; i++) {
 		sf::Packet packet;
 		if (socket.receive(packet) != sf::Socket::Done) {
@@ -168,7 +168,9 @@ void waitOnMorePlayers(sf::TcpSocket& socket, sf::Int8 playerNo) {
 		else {
 			sf::String newPlayerUsername;
 			packet >> newPlayerUsername;
-			std::cout << "Player " << i + 1 << " is \"" << newPlayerUsername.toAnsiString() << "\"." << std::endl;
+			std::cout << "Player " << i + 1 << " is \"" << 
+				newPlayerUsername.toAnsiString() << "\"." << std::endl;
+			usernames[i] = newPlayerUsername;
 		}
 	}
 	std::cout << "All players have connected!" << std::endl;
@@ -182,7 +184,10 @@ int main()
 
 	sf::TcpSocket socket;
 	sf::Int8 playerNo = connectToServer(socket, username);
-	waitOnMorePlayers(socket, playerNo);
+
+	sf::String usernames[NUMPLAYERS];
+	usernames[playerNo] = username;
+	waitOnMorePlayers(socket, playerNo, usernames);
 
 	std::cout << "Waiting for server host to start game..." << std::endl;
 	// Wait for (empty) packet declaring start of game
@@ -193,7 +198,7 @@ int main()
 	}
 
 	// Start game
-	Client client(socket);
+	Client client(socket, NUMPLAYERS, usernames);
 	client.run();
 
     return 0;
