@@ -29,22 +29,24 @@ This file handles the operation of the client.
 #ifndef CLIENT_H
 #define CLIENT_H
 #include <SFML/Network.hpp>
+#include <SFML/Graphics.hpp>
 
 #include "../Tile.h"
 #include "../MPacket.h"
 
+const std::string FONT = "sazanami-gothic.ttf";
+
 class Client {
 public:
-	Client(sf::TcpSocket& server, int NUMPLAYERS, sf::String usernames[]) :
-		m_server(server)
-	{ // Constructor for client class
-		m_NUMPLAYERS = NUMPLAYERS;
-		m_usernames = usernames;
-	}
+	Client(sf::TcpSocket& server, int NUMPLAYERS, sf::String usernames[]); // Constructor
 	void run(); // Order the client to run the game
 private:
+	// Renders the 2D state of the world to the window in preparation for display
+	void draw(sf::RenderWindow& window);
+
 	sf::TcpSocket& m_server;
 	int m_NUMPLAYERS;
 	sf::String* m_usernames;
+	sf::Font m_font;
 };
 #endif

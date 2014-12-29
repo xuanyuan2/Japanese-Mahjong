@@ -26,14 +26,26 @@ Visual Studio is, of course, Microsoft's proprietary IDE.
 This file handles the operation of the client.
 */
 
-#include <SFML/Graphics.hpp>
+#include <iostream>
 
 #include "Client.h"
+
+Client::Client(sf::TcpSocket& server, int NUMPLAYERS, sf::String usernames[]) :
+	m_server(server)
+{ // Constructor for client class
+	m_NUMPLAYERS = NUMPLAYERS;
+	m_usernames = usernames;
+
+	if (!m_font.loadFromFile(FONT)) {
+		std::cout << "Font load error! Aborting..." << std::endl;
+		exit(1);
+	}
+}
 
 void Client::run() {
 	// Test code from SFML
 	// create the window
-	sf::RenderWindow window(sf::VideoMode(800, 600), "My window");
+	sf::RenderWindow window(sf::VideoMode(800, 600), "Japanese Mahjong");
 
 	// run the program as long as the window is open
 	while (window.isOpen())
@@ -47,14 +59,27 @@ void Client::run() {
 				window.close();
 		}
 
-		// clear the window with black color
-		window.clear(sf::Color::Black);
+		// clear the window
+		window.clear(sf::Color::Green);
 
-		// draw everything here...
-		// window.draw(...);
+		// Draw stuff
+		Client::draw(window);
 
 		// end the current frame
 		window.display();
+	}
+}
+
+void Client::draw(sf::RenderWindow& window) {
+	for (int i = 0; i < m_NUMPLAYERS; i++) {
+		sf::Text username;
+		username.setFont(m_font);
+		sf::String text = "Player " + std::to_string(i + 1) + ": " + m_usernames[i];
+		username.setString(text);
+		username.setCharacterSize(18);
+		username.setColor(sf::Color::Magenta);
+		username.move(0, (float)30 * i);
+		window.draw(username);
 	}
 }
 

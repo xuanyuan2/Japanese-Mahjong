@@ -33,7 +33,7 @@ This is the main file of the CLIENT of the Japanese Mahjong program.
 #include "../Tile.h"
 #include "Client.h"
 
-const int NUMPLAYERS = 2;
+const int NUMPLAYERS = 3;
 
 // Player specifies his/her username
 sf::String chooseUsername() {
@@ -100,7 +100,7 @@ int choosePort() {
 }
 
 // Handles connecting to a server on socket. Returns the player's # on the server
-int connectToServer(sf::TcpSocket& socket, sf::String& username) {
+int connectToServer(sf::TcpSocket& socket, sf::String& username, sf::String usernames[]) {
 	// Loop until connection succeeds
 	while (true) {
 		sf::IpAddress ip = chooseIP();
@@ -146,10 +146,14 @@ int connectToServer(sf::TcpSocket& socket, sf::String& username) {
 			sf::Int8 playerNo;
 			packet >> playerNo;
 			std::cout << "You are Player " << (int)playerNo + 1 << "!" << std::endl;
+			usernames[playerNo] = username;
+
 			for (int i = 0; i < playerNo; i++) {
 				sf::String otherPlayerUsername;
 				packet >> otherPlayerUsername;
-				std::cout << "Player " << i + 1 << " is \"" << otherPlayerUsername.toAnsiString() << "\"." << std::endl;
+				std::cout << "Player " << i + 1 << " is \"" << 
+					otherPlayerUsername.toAnsiString() << "\"." << std::endl;
+				usernames[i] = otherPlayerUsername;
 			}
 
 			return playerNo;
@@ -178,28 +182,38 @@ void waitOnMorePlayers(sf::TcpSocket& socket, sf::Int8 playerNo, sf::String user
 
 int main()
 {
-	std::cout << "Welcome to Japanese Mahjong!" << std::endl;
+	bool DEBUG = false;
+	if (!DEBUG) {
+		std::cout << "Welcome to Japanese Mahjong!" << std::endl;
 
-	sf::String username = chooseUsername();
+		sf::String username = chooseUsername();
 
-	sf::TcpSocket socket;
-	sf::Int8 playerNo = connectToServer(socket, username);
+		sf::TcpSocket socket;
+		sf::String usernames[NUMPLAYERS];
+		sf::Int8 playerNo = connectToServer(socket, username, usernames);
+		waitOnMorePlayers(socket, playerNo, usernames);
 
-	sf::String usernames[NUMPLAYERS];
-	usernames[playerNo] = username;
-	waitOnMorePlayers(socket, playerNo, usernames);
+		std::cout << "Waiting for server host to start game..." << std::endl;
+		// Wait for (empty) packet declaring start of game
+		sf::Packet packet;
+		if (socket.receive(packet) != sf::Socket::Done) {
+			std::cout << "Packet transmission failed!" << std::endl;
+			return 1;
+		}
 
-	std::cout << "Waiting for server host to start game..." << std::endl;
-	// Wait for (empty) packet declaring start of game
-	sf::Packet packet;
-	if (socket.receive(packet) != sf::Socket::Done) { 
-		std::cout << "Packet transmission failed!" << std::endl;
-		return 1;
+		std::cout << "Launching game!" << std::endl;
+		Client client(socket, NUMPLAYERS, usernames);
+		client.run();
+	}
+	else {
+		sf::TcpSocket fakeSocket;
+		sf::String usernames[NUMPLAYERS];
+		usernames[0] = "foo";
+		usernames[1] = L"漣";
+		Client client(fakeSocket, NUMPLAYERS, usernames);
+		client.run();
 	}
 
-	// Start game
-	Client client(socket, NUMPLAYERS, usernames);
-	client.run();
 
     return 0;
 }

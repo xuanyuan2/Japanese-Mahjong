@@ -32,7 +32,7 @@ This is the main file of the SERVER for Japanese Mahjong.
 
 #include "Server.h"
 
-const int NUMPLAYERS = 2; // Should actually be 4, of course
+const int NUMPLAYERS = 3; // Should actually be 4, of course
 
 // Host specifies server port. Returns the valid port chosen by the host.
 int choosePort() {
