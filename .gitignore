@@ -159,3 +159,4 @@ $RECYCLE.BIN/
 # Added by Xuan Yuan Huang for sanity
 *.sln
 *.vcxproj*
+.gitattributes

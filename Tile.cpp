@@ -46,6 +46,7 @@ This file defines the tiles used during play.
 */
 
 // Helper functions to identify tiles
+// Note that sf::Int8 corresponds to the TileType enum in Tile.h
 
 sf::Int8 isValidTile(sf::Int8 tile) {
 	return (tile >= PIN_1 * 4)  // First tile
@@ -57,31 +58,42 @@ sf::Int8 typeOf(sf::Int8 tile) {
 }
 
 bool isNumber(sf::Int8 tile) {
-	return tile < 108;
+	return tile < (WIND_E * 4); // First nonnumber tile
 }
 
 bool isPin(sf::Int8 tile) {
-	return tile < 36;
+	return tile < (SOU_1 * 4); // First non-pin tile
 }
 
 bool isSou(sf::Int8 tile) {
-	return (tile >= 36) && (tile < 72);
+	return (tile >= (SOU_1 * 4)) // First sou tile
+		&& (tile < (WAN_1 * 4)); // First non-sou tile
 }
 
 bool isWan(sf::Int8 tile) {
-	return (tile >= 72) && (tile < 108);
+	return (tile >= (WAN_1 * 4)) // First wan tile
+		&& (tile < (WIND_E * 4)); // First non-wan tile
 }
 
 bool isWind(sf::Int8 tile) {
-	return (tile >= 108) && (tile < 124);
+	return (tile >= (WIND_E * 4)) // First wind tile
+		&& (tile < (DRAG_W * 4)); // First non-wind tile
 }
 
 bool isDragon(sf::Int8 tile) {
-	return (tile >= 124) && (tile < 136);
+	return (tile >= (DRAG_W * 4)); // First dragon tile
 }
 
 bool isRed(sf::Int8 tile) {
 	return (isNumber(tile) && // Tile must be a number
 		(typeOf(tile) % 9) == 4 && // Tile must be 5
 		(tile % 4) == 3); // Tile is the last of its type
+}
+
+sf::String filename(sf::Int8 tile) {
+	sf::String filepath = "tiles/";
+	filepath += std::to_string((int)typeOf(tile));
+	if (isRed(tile)) filepath += "_red";
+	filepath += ".png";
+	return filepath;
 }

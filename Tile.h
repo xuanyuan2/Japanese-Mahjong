@@ -76,15 +76,22 @@ enum TileTypes {
 	WAN_9,
 	WIND_E,
 	WIND_S,
-	WIND_N,
 	WIND_W,
+	WIND_N,
 	DRAG_W,
 	DRAG_G,
 	DRAG_R
 };
 
+// Helper functions to identify tiles
+
 sf::Int8 isValidTile(sf::Int8 tile);
+
+// Precondition for all of the following functions:
+//   Paramter tile is a valid tile (passes isValidTile)
+
 sf::Int8 typeOf(sf::Int8 tile);
+
 bool isNumber(sf::Int8 tile);
 bool isPin(sf::Int8 tile);
 bool isSou(sf::Int8 tile);
@@ -92,5 +99,7 @@ bool isWan(sf::Int8 tile);
 bool isWind(sf::Int8 tile);
 bool isDragon(sf::Int8 tile);
 bool isRed(sf::Int8 tile);
+
+sf::String filename(sf::Int8 tile);
 
 #endif
