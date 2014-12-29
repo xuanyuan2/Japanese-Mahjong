@@ -33,9 +33,10 @@ This file handles the operation of the server.
 
 class Server {
 public:
-	Server(sf::TcpSocket *clients, int NUMPLAYERS) {// Server constructor
+	Server(sf::TcpSocket clients[], int NUMPLAYERS, sf::String usernames[]) {// Server constructor
 		m_clients = clients;
 		m_NUMPLAYERS = NUMPLAYERS;
+		m_usernames = usernames;
 	}
 	void run(); // Order the server to run the game
 private:
@@ -45,4 +46,5 @@ private:
 	// Private variables
 	sf::TcpSocket* m_clients; // Array of sockets connected to clients
 	int m_NUMPLAYERS;
+	sf::String* m_usernames;
 };

@@ -35,9 +35,6 @@ This is the main file of the CLIENT of the Japanese Mahjong program.
 
 const int NUMPLAYERS = 2;
 
-sf::String username;
-sf::Int8 playerNo;
-
 // Player specifies his/her username
 sf::String chooseUsername() {
 	while (true) {
@@ -102,8 +99,8 @@ int choosePort() {
 	}
 }
 
-// Handles connecting to a server on socket
-void connectToServer(sf::TcpSocket& socket) {
+// Handles connecting to a server on socket. Returns the player's # on the server
+int connectToServer(sf::TcpSocket& socket, sf::String& username) {
 	// Loop until connection succeeds
 	while (true) {
 		sf::IpAddress ip = chooseIP();
@@ -146,6 +143,7 @@ void connectToServer(sf::TcpSocket& socket) {
 				std::cout << "Packet transmission error!" << std::endl;
 				exit(1);
 			}
+			sf::Int8 playerNo;
 			packet >> playerNo;
 			std::cout << "You are Player " << (int)playerNo + 1 << "!" << std::endl;
 			for (int i = 0; i < playerNo; i++) {
@@ -154,13 +152,13 @@ void connectToServer(sf::TcpSocket& socket) {
 				std::cout << "Player " << i + 1 << " is \"" << otherPlayerUsername.toAnsiString() << "\"." << std::endl;
 			}
 
-			return;
+			return playerNo;
 		}
 	}
 }
 
 // Listen for more players from the server
-void waitOnMorePlayers(sf::TcpSocket& socket) {
+void waitOnMorePlayers(sf::TcpSocket& socket, sf::Int8 playerNo) {
 	for (int i = playerNo + 1; i < NUMPLAYERS; i++) {
 		sf::Packet packet;
 		if (socket.receive(packet) != sf::Socket::Done) {
@@ -180,11 +178,11 @@ int main()
 {
 	std::cout << "Welcome to Japanese Mahjong!" << std::endl;
 
-	username = chooseUsername();
+	sf::String username = chooseUsername();
 
 	sf::TcpSocket socket;
-	connectToServer(socket);
-	waitOnMorePlayers(socket);
+	sf::Int8 playerNo = connectToServer(socket, username);
+	waitOnMorePlayers(socket, playerNo);
 
 	std::cout << "Waiting for server host to start game..." << std::endl;
 	// Wait for (empty) packet declaring start of game

@@ -34,8 +34,6 @@ This is the main file of the SERVER for Japanese Mahjong.
 
 const int NUMPLAYERS = 2; // Should actually be 4, of course
 
-sf::String usernames[NUMPLAYERS];
-
 // Host specifies server port. Returns the valid port chosen by the host.
 int choosePort() {
 	while(true) {
@@ -65,11 +63,11 @@ int choosePort() {
 }
 
 /* Handles accepting an incoming client from listener into the clients[] array
- * Stores usernames (includes dealing with duplicates)
+ * Stores usernames (includes dealing with duplicates) in usernaems[]
  * Reports player connection
  * Informs player of prior connections
  */
-void acceptClient(sf::TcpListener& listener, sf::TcpSocket& client, int index) {
+void acceptClient(sf::TcpListener& listener, sf::TcpSocket& client, int index, sf::String usernames[]) {
 	listener.accept(client);
 
 	// Receive information from player
@@ -140,8 +138,9 @@ int main()
 	std::cout << "Attempting to find players (hit Ctrl+C to abort)..." << std::endl;
 
 	sf::TcpSocket clients[NUMPLAYERS];
+	sf::String usernames[NUMPLAYERS];
 	for (int i = 0; i < NUMPLAYERS; i++) {
-		acceptClient(listener, clients[i], i);
+		acceptClient(listener, clients[i], i, usernames);
 
 		// Inform clients about the newest client to join
 		sf::Packet packet;
@@ -169,7 +168,7 @@ int main()
 	}
 
 	// Initialize and run the server
-	Server server(clients, NUMPLAYERS);
+	Server server(clients, NUMPLAYERS, usernames);
 	server.run();
 
 	std::cout << "Game over, server shutting down." << std::endl;
