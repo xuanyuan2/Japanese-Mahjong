@@ -30,7 +30,6 @@ This is the main file of the CLIENT of the Japanese Mahjong program.
 #include <SFML/Network.hpp>
 #include <SFML/Network/Socket.hpp>
 
-#include "../Tile.h"
 #include "Client.h"
 
 const int NUMPLAYERS = 3;
@@ -180,40 +179,36 @@ void waitOnMorePlayers(sf::TcpSocket& socket, sf::Int8 playerNo, sf::String user
 	std::cout << "All players have connected!" << std::endl;
 }
 
-int main()
-{
-	bool DEBUG = false;
-	if (!DEBUG) {
-		std::cout << "Welcome to Japanese Mahjong!" << std::endl;
+int main() {
+#ifndef CLIENT_ONLY_DEBUG // Define if you only want to test client alone
+	std::cout << "Welcome to Japanese Mahjong!" << std::endl;
 
-		sf::String username = chooseUsername();
+	sf::String username = chooseUsername();
 
-		sf::TcpSocket socket;
-		sf::String usernames[NUMPLAYERS];
-		sf::Int8 playerNo = connectToServer(socket, username, usernames);
-		waitOnMorePlayers(socket, playerNo, usernames);
+	sf::TcpSocket socket;
+	sf::String usernames[NUMPLAYERS];
+	sf::Int8 playerNo = connectToServer(socket, username, usernames);
+	waitOnMorePlayers(socket, playerNo, usernames);
 
-		std::cout << "Waiting for server host to start game..." << std::endl;
-		// Wait for (empty) packet declaring start of game
-		sf::Packet packet;
-		if (socket.receive(packet) != sf::Socket::Done) {
-			std::cout << "Packet transmission failed!" << std::endl;
-			return 1;
-		}
-
-		std::cout << "Launching game!" << std::endl;
-		Client client(socket, NUMPLAYERS, usernames);
-		client.run();
-	}
-	else {
-		sf::TcpSocket fakeSocket;
-		sf::String usernames[NUMPLAYERS];
-		usernames[0] = "foo";
-		usernames[1] = L"漣";
-		Client client(fakeSocket, NUMPLAYERS, usernames);
-		client.run();
+	std::cout << "Waiting for server host to start game..." << std::endl;
+	// Wait for (empty) packet declaring start of game
+	sf::Packet packet;
+	if (socket.receive(packet) != sf::Socket::Done) {
+		std::cout << "Packet transmission failed!" << std::endl;
+		return 1;
 	}
 
+	std::cout << "Launching game!" << std::endl;
+	Client client(socket, NUMPLAYERS, usernames);
+	client.run();
+#else
+	sf::TcpSocket fakeSocket;
+	sf::String usernames[NUMPLAYERS];
+	usernames[0] = "foo";
+	usernames[1] = L"漣";
+	Client client(fakeSocket, NUMPLAYERS, usernames);
+	client.run();
+#endif
 
     return 0;
 }

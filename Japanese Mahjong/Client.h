@@ -32,7 +32,6 @@ This file handles the operation of the client.
 #include <SFML/Graphics.hpp>
 
 #include "../Tile.h"
-#include "../MPacket.h"
 
 const std::string FONT = "sazanami-gothic.ttf";
 
@@ -41,12 +40,21 @@ public:
 	Client(sf::TcpSocket& server, int NUMPLAYERS, sf::String usernames[]); // Constructor
 	void run(); // Order the client to run the game
 private:
-	// Renders the 2D state of the world to the window in preparation for display
-	void draw(sf::RenderWindow& window);
+	// Private methods
+	void loadTileTextures(); // Loads textures for the tiles
+	int tileTextureNo(sf::Uint8 tile); // Gets the index of the texture corresponding to the tile
+	void draw(sf::RenderWindow& window); // Renders the 2D state of the world to the window in preparation for display
 
+	// Private members
 	sf::TcpSocket& m_server;
 	int m_NUMPLAYERS;
 	sf::String* m_usernames;
 	sf::Font m_font;
+	sf::Texture m_tileTextures[NUM_OF_TILE_TEXTURES];
+	sf::Texture m_facedownTileTexture;
+
+	// Private constant members
+	unsigned int m_width = 800;
+	unsigned int m_height = 600;
 };
 #endif

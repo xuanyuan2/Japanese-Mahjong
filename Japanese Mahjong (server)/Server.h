@@ -28,7 +28,6 @@ This file handles the operation of the server.
 
 #include <SFML/Network.hpp>
 
-#include "../Tile.h"
 #include "../Mpacket.h"
 
 class Server {

@@ -36,7 +36,7 @@ the server and the client into Mahjong Packets ("MPacket").
 
 const int MAXNUMOFTILES = 14; // Only dealers ever get this many tiles (at the start)
 
-enum MPacketHeader : sf::Int8 { 
+enum MPacketHeader { 
 	STATE_UPDATE, // This packet contains information about players
 	FIRST_HAND, // Indicates this packet contains the player's first of tiles
 	DRAW, // Server sending player information on draw
@@ -46,10 +46,10 @@ enum MPacketHeader : sf::Int8 {
 
 class MPacket { // Base class of all Mpackets
 public:
-	sf::Int8 getHeader() { return m_header; } // Return this packet's header
+	sf::Uint8 getHeader() { return m_header; } // Return this packet's header
 protected:
 	MPacket() {} // Protected constructor to prevent instantiation of this base class
-	sf::Int8 m_header; // Contains information on the MPacket type
+	sf::Uint8 m_header; // Contains information on the MPacket type
 };
 
 class StatePacket : public MPacket {
@@ -75,7 +75,7 @@ public:
 	FirstHandPacket() {
 		m_header = FIRST_HAND;
 	}
-	const sf::Int8* getHand() { return hand; }
+	const sf::Uint8* getHand() { return m_hand; }
 
 	//// SFML Packet << overload to support
 	//friend sf::Packet& operator<<(sf::Packet& packet, const FirstHandPacket& fhPacket) {
@@ -87,16 +87,16 @@ public:
 
 	//}
 private:
-	sf::Int8 hand[13];
+	sf::Uint8 m_hand[13];
 };
 
 class DrawPacket : public MPacket {
 public:
-	DrawPacket(sf::Int8 draw) {
+	DrawPacket(sf::Uint8 draw) {
 		m_header = DRAW;
 		m_draw = draw;
 	}
-	const sf::Int8 getDraw() { return m_draw; }
+	const sf::Uint8 getDraw() { return m_draw; }
 
 	//// SFML Packet << overload to support
 	//friend sf::Packet& operator<<(sf::Packet& packet, const DrawPacket& drawPacket) {
@@ -108,7 +108,7 @@ public:
 
 	//}
 private:
-	sf::Int8 m_draw;
+	sf::Uint8 m_draw;
 };
 
 class DiscardSelfPacket : public MPacket {
@@ -116,7 +116,7 @@ public:
 	DiscardSelfPacket() {
 		m_header = DISCARD_SELF;
 	}
-	const sf::Int8 getDiscard() { return m_discard; }
+	const sf::Uint8 getDiscard() { return m_discard; }
 
 	//// SFML Packet << overload to support
 	//friend sf::Packet& operator<<(sf::Packet& packet, const DiscardSelfPacket& dsPacket) {
@@ -128,7 +128,7 @@ public:
 
 	//}
 private:
-	sf::Int8 m_discard;
+	sf::Uint8 m_discard;
 };
 
 class DiscardPacket : public MPacket {
@@ -136,7 +136,7 @@ public:
 	DiscardPacket() {
 		m_header = DISCARD;
 	}
-	const sf::Int8 getDiscard() { return m_discard; }
+	const sf::Uint8 getDiscard() { return m_discard; }
 
 	//// SFML Packet << overload to support
 	//friend sf::Packet& operator<<(sf::Packet& packet, const DiscardPacket& dPacket) {
@@ -148,7 +148,7 @@ public:
 
 	//}
 private:
-	sf::Int8 m_discard;
+	sf::Uint8 m_discard;
 };
 
 #endif

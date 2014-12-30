@@ -37,15 +37,16 @@ Client::Client(sf::TcpSocket& server, int NUMPLAYERS, sf::String usernames[]) :
 	m_usernames = usernames;
 
 	if (!m_font.loadFromFile(FONT)) {
-		std::cout << "Font load error! Aborting..." << std::endl;
 		exit(1);
 	}
 }
 
 void Client::run() {
+	loadTileTextures();
+
 	// Test code from SFML
 	// create the window
-	sf::RenderWindow window(sf::VideoMode(800, 600), "Japanese Mahjong");
+	sf::RenderWindow window(sf::VideoMode(m_width, m_height), "Japanese Mahjong");
 
 	// run the program as long as the window is open
 	while (window.isOpen())
@@ -60,7 +61,8 @@ void Client::run() {
 		}
 
 		// clear the window
-		window.clear(sf::Color::Green);
+		sf::Color mahjongGreen(70, 120, 100, 255);
+		window.clear(mahjongGreen);
 
 		// Draw stuff
 		Client::draw(window);
@@ -70,7 +72,45 @@ void Client::run() {
 	}
 }
 
+void Client::loadTileTextures() {
+	// Load the textures of all tiles except the red dora and the facedown
+	for (int i = 0; i < NUM_OF_TILE_TEXTURES - 3 ; i++) {
+		sf::Uint8 tile = i * 4;
+		if (!m_tileTextures[i].loadFromFile(filename(tile)))
+			exit(1); // Images missing
+	}
+
+	// Load the red dora into the last three textures
+	sf::Uint8 tile = PIN_5_RED; // Pin 5 red
+	if (!m_tileTextures[34].loadFromFile(filename(tile)))
+		exit(1);
+
+	tile = SOU_5_RED; // Sou 5 red
+	if (!m_tileTextures[35].loadFromFile(filename(tile)))
+		exit(1);
+
+	tile = WAN_5_RED; // Wan 5 red
+	if (!m_tileTextures[36].loadFromFile(filename(tile)))
+		exit(1);
+
+	// Load the facedown tile texture
+	if (!m_facedownTileTexture.loadFromFile("tiles/facedown.png"))
+		exit(1);
+}
+
+int Client::tileTextureNo(sf::Uint8 tile) {
+	int index;
+	if (isRed(tile)) {
+		if (tile = PIN_5_RED) return 34;
+		if (tile = SOU_5_RED) return 35;
+		if (tile = WAN_5_RED) return 36;
+	}
+	else index = typeOf(tile);
+	return index;
+}
+
 void Client::draw(sf::RenderWindow& window) {
+	// Testing 
 	for (int i = 0; i < m_NUMPLAYERS; i++) {
 		sf::Text username;
 		username.setFont(m_font);
@@ -81,5 +121,11 @@ void Client::draw(sf::RenderWindow& window) {
 		username.move(0, (float)30 * i);
 		window.draw(username);
 	}
+
+	sf::Uint8 testTile = PIN_5_RED; 
+	sf::Sprite testSprite;
+	testSprite.setTexture(m_tileTextures[tileTextureNo(testTile)]);
+	testSprite.setPosition(sf::Vector2f(0,0));
+	window.draw(testSprite);
 }
 
