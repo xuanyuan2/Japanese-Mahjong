@@ -27,23 +27,24 @@ This file handles the operation of the server.
 */
 
 #include <SFML/Network.hpp>
+#include <random> // For RNG
+#include <vector>
 
-#include "../Mpacket.h"
+#include "../Tile.h"
 
 class Server {
 public:
-	Server(sf::TcpSocket clients[], int NUMPLAYERS, sf::String usernames[]) {// Server constructor
-		m_clients = clients;
-		m_NUMPLAYERS = NUMPLAYERS;
-		m_usernames = usernames;
-	}
+	Server(sf::TcpSocket clients[], int NUMPLAYERS, sf::String usernames[]);
 	void run(); // Order the server to run the game
 private:
 	// Private Methods
-
+	void redistributeTiles(); // Takes back all tiles and distributes them to players and walls
 
 	// Private variables
 	sf::TcpSocket* m_clients; // Array of sockets connected to clients
 	int m_NUMPLAYERS;
 	sf::String* m_usernames;
+	std::default_random_engine RNG;
+	std::vector< std::vector<Tile> > playerHands, playerDiscards;
+	std::vector<Tile> liveWall, deadWall;
 };

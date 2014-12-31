@@ -26,9 +26,77 @@ Visual Studio is, of course, Microsoft's proprietary IDE.
 This file handles the operation of the server.
 */
 
+#include <iostream>
+#include <algorithm> // For shuffling
+
 #include "Server.h"
+#include "../MPacket.h"
 
-void Server::run() {
+Server::Server(sf::TcpSocket clients[], int NUMPLAYERS, sf::String usernames[]) {// Server constructor
+	m_clients = clients;
+	m_NUMPLAYERS = NUMPLAYERS;
+	m_usernames = usernames;
 
+	RNG.seed((unsigned)time(NULL));
+
+	// Player hands
+	for (int i = 0; i < NUMPLAYERS; ++i) {
+		std::vector<Tile> hand;
+		playerHands.push_back(hand);
+	}
+	// Player discards
+	for (int i = 0; i < NUMPLAYERS; ++i) {
+		std::vector<Tile> discards;
+		playerDiscards.push_back(discards);
+	}
 }
 
+void Server::run() {
+	std::cout << "Game launched." << std::endl;
+	redistributeTiles();
+
+	// The following chunk of code is for debugging
+	for (int p = 0; p < m_NUMPLAYERS; ++p) {
+		std::cout << "Player " << p + 1 << std::endl;
+		for (int t = 0; t < 13; t++) {
+			std::cout << (int)playerHands[p][t] << std::endl;
+		}
+
+		FirstHandPacket hand(playerHands[p]);
+		sf::Packet packet;
+		packet << hand;
+		m_clients[p].send(packet);
+	}
+	while (true) {} // Loop to keep the console open for debugging
+}
+
+void Server::redistributeTiles() {
+	playerHands.clear();
+	playerDiscards.clear();
+	liveWall.clear();
+	deadWall.clear();
+
+	int playerHandMaxSize = 13; // Max size when hands are first made, that is
+	int deadWallMaxSize = 14;
+	int liveWallMaxSize = 70;
+
+	Tile tiles[NUM_OF_TILES];
+	for (Tile i = 0; i < NUM_OF_TILES; ++i)
+		tiles[i] = i;
+	std::random_shuffle(std::begin(tiles), std::end(tiles));
+	
+	// Fill the live wall
+	for (int j = 0; j < liveWallMaxSize; ++j)
+		liveWall.push_back(tiles[j]);
+
+	// Fill the dead wall
+	for (int k = liveWallMaxSize; k < liveWallMaxSize + deadWallMaxSize; ++k)
+		deadWall.push_back(tiles[k]);
+
+	// Fill out players' hands
+	for (int p = 0; p < m_NUMPLAYERS; ++p) {
+		for (int t = liveWallMaxSize + deadWallMaxSize; t < NUM_OF_TILES; t++) {
+			playerHands[p].push_back(tiles[p * playerHandMaxSize + t]);
+		}
+	}
+}

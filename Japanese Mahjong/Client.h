@@ -42,7 +42,7 @@ public:
 private:
 	// Private methods
 	void loadTileTextures(); // Loads textures for the tiles
-	int tileTextureNo(sf::Uint8 tile); // Gets the index of the texture corresponding to the tile
+	int tileTextureNo(Tile tile); // Gets the index of the texture corresponding to the tile
 	void draw(sf::RenderWindow& window); // Renders the 2D state of the world to the window in preparation for display
 
 	// Private members
@@ -52,6 +52,8 @@ private:
 	sf::Font m_font;
 	sf::Texture m_tileTextures[NUM_OF_TILE_TEXTURES];
 	sf::Texture m_facedownTileTexture;
+
+	Tile hand[13];
 
 	// Private constant members
 	unsigned int m_width = 800;

@@ -32,7 +32,7 @@ This is the main file of the CLIENT of the Japanese Mahjong program.
 
 #include "Client.h"
 
-const int NUMPLAYERS = 3;
+const int NUMPLAYERS = 4;
 
 // Player specifies his/her username
 sf::String chooseUsername() {
@@ -133,7 +133,7 @@ int connectToServer(sf::TcpSocket& socket, sf::String& username, sf::String user
 			if (!newUsername.isEmpty()) { // Server enforced name change
 				username = newUsername; // Save new username
 				std::cout << "Player(s) already exist on the server with your username!" << std::endl
-					<< "Your username has been changed to: " << username.toAnsiString() << std::endl;
+					<< "Your username has been changed to \"" << username.toAnsiString() << "\"." << std::endl;
 			}
 
 			// Parse information on other players in the server

@@ -83,58 +83,61 @@ enum TileTypes {
 	DRAG_R
 };
 
-const sf::Uint8 PIN_5_RED = PIN_5 * 4 + 3;
-const sf::Uint8 SOU_5_RED = SOU_5 * 4 + 3;
-const sf::Uint8 WAN_5_RED = WAN_5 * 4 + 3;
+typedef sf::Uint8 Tile;
 
+const Tile PIN_5_RED = PIN_5 * 4 + 3;
+const Tile SOU_5_RED = SOU_5 * 4 + 3;
+const Tile WAN_5_RED = WAN_5 * 4 + 3;
+
+const int NUM_OF_TILES = 136;
 const int NUM_OF_TILE_TEXTURES = 34 + 3; // 34 types of tiles, plus three red dora at the end
 
 // Helper functions to identify tiles
 // Precondition: Paramter tile is a valid tile (passes isValidTile)
 
-inline sf::Int16 isValidTile(sf::Uint8 tile) {
+inline bool isValidTile(Tile tile) {
 	return (tile >= PIN_1 * 4)  // First tile
 		&& (tile < (DRAG_R + 1) * 4); // Last tile
 }
 
-inline int typeOf(sf::Uint8 tile) {
-	return (sf::Int16)floor((int)tile / 4);
+inline int typeOf(Tile tile) {
+	return (Tile)floor((int)tile / 4);
 }
 
-inline bool isNumber(sf::Uint8 tile) {
+inline bool isNumber(Tile tile) {
 	return tile < (WIND_E * 4); // First nonnumber tile
 }
 
-inline bool isPin(sf::Uint8 tile) {
+inline bool isPin(Tile tile) {
 	return tile < (SOU_1 * 4); // First non-pin tile
 }
 
-inline bool isSou(sf::Uint8 tile) {
+inline bool isSou(Tile tile) {
 	return (tile >= (SOU_1 * 4)) // First sou tile
 		&& (tile < (WAN_1 * 4)); // First non-sou tile
 }
 
-inline bool isWan(sf::Uint8 tile) {
+inline bool isWan(Tile tile) {
 	return (tile >= (WAN_1 * 4)) // First wan tile
 		&& (tile < (WIND_E * 4)); // First non-wan tile
 }
 
-inline bool isWind(sf::Uint8 tile) {
+inline bool isWind(Tile tile) {
 	return (tile >= (WIND_E * 4)) // First wind tile
 		&& (tile < (DRAG_W * 4)); // First non-wind tile
 }
 
-inline bool isDragon(sf::Uint8 tile) {
+inline bool isDragon(Tile tile) {
 	return (tile >= (DRAG_W * 4)); // First dragon tile
 }
 
-inline bool isRed(sf::Uint8 tile) {
+inline bool isRed(Tile tile) {
 	return (isNumber(tile) && // Tile must be a number
 		(typeOf(tile) % 9) == 4 && // Tile must be 5
 		(tile % 4) == 3); // Tile is the last of its type
 }
 
-inline sf::String filename(sf::Uint8 tile) {
+inline sf::String filename(Tile tile) {
 	sf::String filepath = "tiles/";
 	filepath += std::to_string((int)typeOf(tile));
 	if (isRed(tile)) filepath += "_red";

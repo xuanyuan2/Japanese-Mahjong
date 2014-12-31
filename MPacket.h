@@ -31,8 +31,9 @@ the server and the client into Mahjong Packets ("MPacket").
 #define MPACKET_H
 #include <SFML/Network.hpp>
 #include <SFML/System/String.hpp>
+#include <vector>
 
-#include "../Tile.h"
+#include "Tile.h"
 
 const int MAXNUMOFTILES = 14; // Only dealers ever get this many tiles (at the start)
 
@@ -46,10 +47,10 @@ enum MPacketHeader {
 
 class MPacket { // Base class of all Mpackets
 public:
-	sf::Uint8 getHeader() { return m_header; } // Return this packet's header
+	Tile getHeader() { return m_header; } // Return this packet's header
 protected:
 	MPacket() {} // Protected constructor to prevent instantiation of this base class
-	sf::Uint8 m_header; // Contains information on the MPacket type
+	Tile m_header; // Contains information on the MPacket type
 };
 
 class StatePacket : public MPacket {
@@ -72,31 +73,43 @@ private:
 
 class FirstHandPacket : public MPacket {
 public:
+	FirstHandPacket(std::vector<Tile>& hand) {
+		m_header = FIRST_HAND;
+		for (int i = 0; i < 13; ++i) {
+			m_hand[i] = hand[i];
+		}
+	}
 	FirstHandPacket() {
 		m_header = FIRST_HAND;
 	}
-	const sf::Uint8* getHand() { return m_hand; }
+	const Tile* getHand() { return m_hand; }
 
-	//// SFML Packet << overload to support
-	//friend sf::Packet& operator<<(sf::Packet& packet, const FirstHandPacket& fhPacket) {
+	// SFML Packet << overload to support
+	friend sf::Packet& operator<<(sf::Packet& packet, const FirstHandPacket& fhPacket) {
+		for (int i = 0; i < 13; ++i) {
+			packet << fhPacket.m_hand[i];
+		}
+		return packet;
+	}
 
-	//}
-
-	//// SFML Packet >> overload to support
-	//friend sf::Packet& operator>>(sf::Packet& packet, FirstHandPacket& fhPacket) {
-
-	//}
+	// SFML Packet >> overload to support
+	friend sf::Packet& operator>>(sf::Packet& packet, FirstHandPacket& fhPacket) {
+		for (int i = 0; i < 13; ++i) {
+			packet >> fhPacket.m_hand[i];
+		}
+		return packet;
+	}
 private:
-	sf::Uint8 m_hand[13];
+	Tile m_hand[13];
 };
 
 class DrawPacket : public MPacket {
 public:
-	DrawPacket(sf::Uint8 draw) {
+	DrawPacket(Tile draw) {
 		m_header = DRAW;
 		m_draw = draw;
 	}
-	const sf::Uint8 getDraw() { return m_draw; }
+	const Tile getDraw() { return m_draw; }
 
 	//// SFML Packet << overload to support
 	//friend sf::Packet& operator<<(sf::Packet& packet, const DrawPacket& drawPacket) {
@@ -108,7 +121,7 @@ public:
 
 	//}
 private:
-	sf::Uint8 m_draw;
+	Tile m_draw;
 };
 
 class DiscardSelfPacket : public MPacket {
@@ -116,7 +129,7 @@ public:
 	DiscardSelfPacket() {
 		m_header = DISCARD_SELF;
 	}
-	const sf::Uint8 getDiscard() { return m_discard; }
+	const Tile getDiscard() { return m_discard; }
 
 	//// SFML Packet << overload to support
 	//friend sf::Packet& operator<<(sf::Packet& packet, const DiscardSelfPacket& dsPacket) {
@@ -128,7 +141,7 @@ public:
 
 	//}
 private:
-	sf::Uint8 m_discard;
+	Tile m_discard;
 };
 
 class DiscardPacket : public MPacket {
@@ -136,7 +149,7 @@ public:
 	DiscardPacket() {
 		m_header = DISCARD;
 	}
-	const sf::Uint8 getDiscard() { return m_discard; }
+	const Tile getDiscard() { return m_discard; }
 
 	//// SFML Packet << overload to support
 	//friend sf::Packet& operator<<(sf::Packet& packet, const DiscardPacket& dPacket) {
@@ -148,7 +161,7 @@ public:
 
 	//}
 private:
-	sf::Uint8 m_discard;
+	Tile m_discard;
 };
 
 #endif

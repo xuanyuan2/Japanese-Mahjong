@@ -21,8 +21,8 @@ NETWORK INFRASTRUCTURE
 
 ***
 FUNDAMENTAL GAME STRUCTURE (Server)
+[12-30-14] Store and distribute tiles
 [] Implement basic timing of rounds (2, "hanchan") and hands (4+) (general structure)
-[] Store and distribute tiles
 [] Implement basic player turn/seat cycle
 [] Receive and interpret player input each turn 
 [] Receive and interpret player input between turns (calls) (BEWARE: TIMING ISSUES LIKELY)

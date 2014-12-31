@@ -32,7 +32,7 @@ This is the main file of the SERVER for Japanese Mahjong.
 
 #include "Server.h"
 
-const int NUMPLAYERS = 3; // Should actually be 4, of course
+const int NUMPLAYERS = 4;
 
 // Host specifies server port. Returns the valid port chosen by the host.
 int choosePort() {
@@ -86,12 +86,11 @@ void acceptClient(sf::TcpListener& listener, sf::TcpSocket& client, int index, s
 			// Identical username detected!
 			if (duplicates == 1) { // First duplicate
 				username += std::to_string(duplicates); // Adds a "1" to the end of the name
-				duplicates++;
 			}
 			else { // Other duplicates already exist
-				duplicates++;
 				username = username.substring(0, username.getSize() - 1) + std::to_string(duplicates);
 			}
+			duplicates++;
 		}
 	}
 	sf::String newUsername; // Defaults to empty string, which client interprets as no change
@@ -167,7 +166,7 @@ int main()
 		}
 	}
 
-	// Initialize and run the server
+	std::cout << "Launching game..." << std::endl;
 	Server server(clients, NUMPLAYERS, usernames);
 	server.run();
 

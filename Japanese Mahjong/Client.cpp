@@ -29,6 +29,7 @@ This file handles the operation of the client.
 #include <iostream>
 
 #include "Client.h"
+#include "../MPacket.h"
 
 Client::Client(sf::TcpSocket& server, int NUMPLAYERS, sf::String usernames[]) :
 	m_server(server)
@@ -44,6 +45,16 @@ Client::Client(sf::TcpSocket& server, int NUMPLAYERS, sf::String usernames[]) :
 void Client::run() {
 	loadTileTextures();
 
+	sf::Packet packet;
+	m_server.receive(packet);
+	FirstHandPacket firstHand;
+	packet >> firstHand;
+	const Tile* firstTiles = firstHand.getHand();
+	for (int i = 0; i < 13; i++) {
+		hand[i] = firstTiles[i];
+	}
+	std::sort(std::begin(hand), std::end(hand));
+	
 	// Test code from SFML
 	// create the window
 	sf::RenderWindow window(sf::VideoMode(m_width, m_height), "Japanese Mahjong");
@@ -75,13 +86,13 @@ void Client::run() {
 void Client::loadTileTextures() {
 	// Load the textures of all tiles except the red dora and the facedown
 	for (int i = 0; i < NUM_OF_TILE_TEXTURES - 3 ; i++) {
-		sf::Uint8 tile = i * 4;
+		Tile tile = i * 4;
 		if (!m_tileTextures[i].loadFromFile(filename(tile)))
 			exit(1); // Images missing
 	}
 
 	// Load the red dora into the last three textures
-	sf::Uint8 tile = PIN_5_RED; // Pin 5 red
+	Tile tile = PIN_5_RED; // Pin 5 red
 	if (!m_tileTextures[34].loadFromFile(filename(tile)))
 		exit(1);
 
@@ -98,7 +109,7 @@ void Client::loadTileTextures() {
 		exit(1);
 }
 
-int Client::tileTextureNo(sf::Uint8 tile) {
+int Client::tileTextureNo(Tile tile) {
 	int index;
 	if (isRed(tile)) {
 		if (tile = PIN_5_RED) return 34;
@@ -122,10 +133,12 @@ void Client::draw(sf::RenderWindow& window) {
 		window.draw(username);
 	}
 
-	sf::Uint8 testTile = PIN_5_RED; 
-	sf::Sprite testSprite;
-	testSprite.setTexture(m_tileTextures[tileTextureNo(testTile)]);
-	testSprite.setPosition(sf::Vector2f(0,0));
-	window.draw(testSprite);
+	// Draw the hand (still testing)
+	for (int i = 0; i < 13; ++i) {
+		sf::Sprite testSprite;
+		testSprite.setTexture(m_tileTextures[tileTextureNo(hand[i])]);
+		testSprite.setPosition(sf::Vector2f(42 * i, 0));
+		window.draw(testSprite);
+	}
 }
 
