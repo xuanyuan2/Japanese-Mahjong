@@ -69,6 +69,7 @@ void Client::run() {
 			// "close requested" event: we close the window
 			if (event.type == sf::Event::Closed)
 				window.close();
+			// TODO: Send shutdown signal to server and other clients
 		}
 
 		// clear the window
@@ -121,23 +122,11 @@ int Client::tileTextureNo(Tile tile) {
 }
 
 void Client::draw(sf::RenderWindow& window) {
-	// Testing 
-	for (int i = 0; i < m_NUMPLAYERS; i++) {
-		sf::Text username;
-		username.setFont(m_font);
-		sf::String text = "Player " + std::to_string(i + 1) + ": " + m_usernames[i];
-		username.setString(text);
-		username.setCharacterSize(18);
-		username.setColor(sf::Color::Magenta);
-		username.move(0, (float)30 * i);
-		window.draw(username);
-	}
-
 	// Draw the hand (still testing)
 	for (int i = 0; i < 13; ++i) {
 		sf::Sprite testSprite;
 		testSprite.setTexture(m_tileTextures[tileTextureNo(hand[i])]);
-		testSprite.setPosition(sf::Vector2f(42 * i, 0));
+		testSprite.setPosition(sf::Vector2f(100 + 42 * i, 526));
 		window.draw(testSprite);
 	}
 }

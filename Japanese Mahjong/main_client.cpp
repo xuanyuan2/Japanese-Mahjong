@@ -180,7 +180,6 @@ void waitOnMorePlayers(sf::TcpSocket& socket, sf::Int8 playerNo, sf::String user
 }
 
 int main() {
-#ifndef CLIENT_ONLY_DEBUG // Define if you only want to test client alone
 	std::cout << "Welcome to Japanese Mahjong!" << std::endl;
 
 	sf::String username = chooseUsername();
@@ -201,14 +200,6 @@ int main() {
 	std::cout << "Launching game!" << std::endl;
 	Client client(socket, NUMPLAYERS, usernames);
 	client.run();
-#else
-	sf::TcpSocket fakeSocket;
-	sf::String usernames[NUMPLAYERS];
-	usernames[0] = "foo";
-	usernames[1] = L"漣";
-	Client client(fakeSocket, NUMPLAYERS, usernames);
-	client.run();
-#endif
 
     return 0;
 }

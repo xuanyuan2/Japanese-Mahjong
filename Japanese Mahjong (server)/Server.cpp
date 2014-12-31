@@ -56,6 +56,7 @@ void Server::run() {
 	redistributeTiles();
 
 	// The following chunk of code is for debugging
+	/*
 	for (int p = 0; p < m_NUMPLAYERS; ++p) {
 		std::cout << "Player " << p + 1 << std::endl;
 		for (int t = 0; t < 13; t++) {
@@ -67,6 +68,8 @@ void Server::run() {
 		packet << hand;
 		m_clients[p].send(packet);
 	}
+	*/
+
 	while (true) {} // Loop to keep the console open for debugging
 }
 
