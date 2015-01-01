@@ -32,12 +32,11 @@ This file handles the operation of the server.
 #include "Server.h"
 #include "../MPacket.h"
 
-Server::Server(sf::TcpSocket clients[], int NUMPLAYERS, sf::String usernames[]) {// Server constructor
+// Server constructor
+Server::Server(sf::TcpSocket clients[], int NUMPLAYERS, sf::String usernames[]) {
 	m_clients = clients;
 	m_NUMPLAYERS = NUMPLAYERS;
 	m_usernames = usernames;
-
-	RNG.seed((unsigned)time(NULL));
 
 	// Player hands
 	for (int i = 0; i < NUMPLAYERS; ++i) {
@@ -53,10 +52,11 @@ Server::Server(sf::TcpSocket clients[], int NUMPLAYERS, sf::String usernames[]) 
 
 void Server::run() {
 	std::cout << "Game launched." << std::endl;
+	determineSeating();
+
 	redistributeTiles();
 
 	// The following chunk of code is for debugging
-	/*
 	for (int p = 0; p < m_NUMPLAYERS; ++p) {
 		std::cout << "Player " << p + 1 << std::endl;
 		for (int t = 0; t < 13; t++) {
@@ -68,9 +68,12 @@ void Server::run() {
 		packet << hand;
 		m_clients[p].send(packet);
 	}
-	*/
 
 	while (true) {} // Loop to keep the console open for debugging
+}
+
+void Server::determineSeating() {
+
 }
 
 void Server::redistributeTiles() {
@@ -86,7 +89,9 @@ void Server::redistributeTiles() {
 	Tile tiles[NUM_OF_TILES];
 	for (Tile i = 0; i < NUM_OF_TILES; ++i)
 		tiles[i] = i;
-	std::random_shuffle(std::begin(tiles), std::end(tiles));
+	std::random_device rd;
+	std::mt19937 g(rd());
+	std::shuffle(std::begin(tiles), std::end(tiles), g);
 	
 	// Fill the live wall
 	for (int j = 0; j < liveWallMaxSize; ++j)

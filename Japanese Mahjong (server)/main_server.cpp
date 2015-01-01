@@ -154,7 +154,8 @@ int main()
 
 	std::cout << "All players have connected!" << std::endl;
 
-	std::cout << "Press ENTER to begin.";
+	std::cout << "Press ENTER to begin."; 
+	std::cin.ignore(std::numeric_limits <std::streamsize> ::max(), '\n');
 	std::cin.get();
 
 	// Send out the (empty) packet allowing clients to begin

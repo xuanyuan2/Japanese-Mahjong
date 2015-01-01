@@ -198,6 +198,7 @@ int main() {
 	}
 
 	std::cout << "Launching game!" << std::endl;
+	std::cout << "Please do not close this window during the course of the game." << std::endl;
 	Client client(socket, NUMPLAYERS, usernames);
 	client.run();
 

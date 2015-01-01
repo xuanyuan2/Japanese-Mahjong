@@ -38,13 +38,13 @@ public:
 	void run(); // Order the server to run the game
 private:
 	// Private Methods
+	void determineSeating(); // Decide which player starts with what wind and who is dealer
 	void redistributeTiles(); // Takes back all tiles and distributes them to players and walls
 
 	// Private variables
 	sf::TcpSocket* m_clients; // Array of sockets connected to clients
 	int m_NUMPLAYERS;
 	sf::String* m_usernames;
-	std::default_random_engine RNG;
 	std::vector< std::vector<Tile> > playerHands, playerDiscards;
 	std::vector<Tile> liveWall, deadWall;
 };
