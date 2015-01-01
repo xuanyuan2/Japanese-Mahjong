@@ -116,7 +116,7 @@ void acceptClient(sf::TcpListener& listener, sf::TcpSocket& client, int index, s
 	}
 
 	usernames[index] = username; // Store the correct username away
-	std::cout << "Player " << index + 1 << ", named \"" << username.toAnsiString() << "\", has connected from " << client.getRemoteAddress() << "!" << std::endl;
+	std::cout << std::endl << "Player " << index + 1 << ", named \"" << username.toAnsiString() << "\", has connected from " << client.getRemoteAddress() << "!";
 }
 
 int main()
@@ -134,7 +134,7 @@ int main()
 
 	std::cout << "Your external IP appears to be: " << sf::IpAddress::getPublicAddress() << std::endl;
 
-	std::cout << "Attempting to find players (hit Ctrl+C to abort)..." << std::endl;
+	std::cout << "Attempting to find players (hit Ctrl+C to abort)...";
 
 	sf::TcpSocket clients[NUMPLAYERS];
 	sf::String usernames[NUMPLAYERS];
@@ -152,9 +152,9 @@ int main()
 		}
 	}
 
-	std::cout << "All players have connected!" << std::endl;
+	std::cout << std::endl << "All players have connected!" << std::endl;
 
-	std::cout << "Press ENTER to begin."; 
+	std::cout << "Press ENTER to begin..."; 
 	std::cin.ignore(std::numeric_limits <std::streamsize> ::max(), '\n');
 	std::cin.get();
 

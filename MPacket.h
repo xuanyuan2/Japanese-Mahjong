@@ -109,17 +109,20 @@ public:
 		m_header = DRAW;
 		m_draw = draw;
 	}
+	DrawPacket() {
+		m_header = DRAW;
+	}
 	const Tile getDraw() { return m_draw; }
 
-	//// SFML Packet << overload to support
-	//friend sf::Packet& operator<<(sf::Packet& packet, const DrawPacket& drawPacket) {
+	// SFML Packet << overload to support
+	friend sf::Packet& operator<<(sf::Packet& packet, const DrawPacket& drawPacket) {
+		return packet << drawPacket.m_draw;
+	}
 
-	//}
-
-	//// SFML Packet >> overload to support
-	//friend sf::Packet& operator>>(sf::Packet& packet, DrawPacket& drawPacket) {
-
-	//}
+	// SFML Packet >> overload to support
+	friend sf::Packet& operator>>(sf::Packet& packet, DrawPacket& drawPacket) {
+		return packet >> drawPacket.m_draw;
+	}
 private:
 	Tile m_draw;
 };

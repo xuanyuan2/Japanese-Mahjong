@@ -47,15 +47,21 @@ Client::Client(sf::TcpSocket& server, int NUMPLAYERS, sf::String usernames[], sf
 void Client::run() {
 	loadTileTextures();
 
+	// This code is for debugging
 	sf::Packet packet;
 	m_server.receive(packet);
 	FirstHandPacket firstHand;
 	packet >> firstHand;
 	const Tile* firstTiles = firstHand.getHand();
 	for (int i = 0; i < 13; i++) {
-		hand.push_back(firstTiles[i]);
+		hand[i] = firstTiles[i];
 	}
 	std::sort(std::begin(hand), std::end(hand));
+	DrawPacket firstDraw;
+	packet.clear();
+	m_server.receive(packet);
+	packet >> firstDraw;
+	drawnTile = firstDraw.getDraw();
 	
 	// Test code from SFML
 	// create the window
@@ -72,6 +78,22 @@ void Client::run() {
 			if (event.type == sf::Event::Closed)
 				window.close();
 			// TODO: Send shutdown signal to server and other clients
+			// The follwoing elseif clause is VERY much debug code! Magic numbers, ahoy!
+			else if (event.type == sf::Event::MouseButtonReleased) {
+				sf::Vector2i pos = sf::Mouse::getPosition(window);
+				std::cout << "(" << pos.x << ", " << pos.y << ")" << std::endl;
+				// Hand
+				if (pos.x > 100 && pos.x < 646 &&
+					pos.y > 526 && pos.y < 600) {
+					int i = floor((pos.x - 100) / 42);
+					discard(i);
+				}
+				// Draw
+				else if (pos.x > 698 && pos.x < 740 &&
+					pos.y > 526 && pos.y < 600){
+					discard(14);
+				}
+			}
 		}
 
 		// clear the window
@@ -79,7 +101,7 @@ void Client::run() {
 		window.clear(mahjongGreen);
 
 		// Draw stuff
-		Client::draw(window);
+		Client::render(window);
 
 		// end the current frame
 		window.display();
@@ -123,13 +145,28 @@ int Client::tileTextureNo(Tile tile) {
 	return index;
 }
 
-void Client::draw(sf::RenderWindow& window) {
-	// Draw the hand (still testing)
+void Client::render(sf::RenderWindow& window) {
+	// Render the hand (still testing)
 	for (int i = 0; i < 13; ++i) {
 		sf::Sprite testSprite;
 		testSprite.setTexture(m_tileTextures[tileTextureNo(hand[i])]);
 		testSprite.setPosition(sf::Vector2f(100 + 42 * i, 526));
 		window.draw(testSprite);
 	}
+
+	// Render the drawn tile (still testing)
+	if (drawnTile != NUM_OF_TILES) {
+		sf::Sprite testSprite;
+		testSprite.setTexture(m_tileTextures[tileTextureNo(drawnTile)]);
+		testSprite.setPosition(sf::Vector2f(110 + 42 * 14, 526));
+		window.draw(testSprite);
+	}
 }
 
+void Client::discard(int i) {
+	if (i != 14 && drawnTile != NUM_OF_TILES) {
+		hand[i] = drawnTile;
+		std::sort(std::begin(hand), std::end(hand));
+	}
+	drawnTile = NUM_OF_TILES;
+}

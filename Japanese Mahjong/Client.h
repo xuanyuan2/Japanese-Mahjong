@@ -44,7 +44,9 @@ private:
 	// Private methods
 	void loadTileTextures(); // Loads textures for the tiles
 	int tileTextureNo(Tile tile); // Gets the index of the texture corresponding to the tile
-	void draw(sf::RenderWindow& window); // Renders the 2D state of the world to the window in preparation for display
+	void render(sf::RenderWindow& window); // Renders the 2D state of the world to the window in preparation for display
+
+	void discard(int i); // Discard the ith tile from the hand (i = 14 is the draw instead)
 
 	// Private members
 	sf::TcpSocket& m_server;
@@ -55,7 +57,8 @@ private:
 	sf::Texture m_tileTextures[NUM_OF_TILE_TEXTURES];
 	sf::Texture m_facedownTileTexture;
 
-	std::vector<Tile> hand;
+	Tile hand[13];
+	Tile drawnTile = NUM_OF_TILES; // Defaults to error/no drawn tile
 
 	// Private constant members
 	unsigned int m_width = 800;

@@ -39,7 +39,7 @@ Server::Server(sf::TcpSocket clients[], int NUMPLAYERS, sf::String usernames[]) 
 	m_usernames = usernames;
 
 	std::random_device rd;
-	rng = new std::mt19937(rd());
+	rng.reset(new std::mt19937(rd()));
 
 	// Player hands
 	for (int i = 0; i < NUMPLAYERS; ++i) {
@@ -51,10 +51,6 @@ Server::Server(sf::TcpSocket clients[], int NUMPLAYERS, sf::String usernames[]) 
 		std::vector<Tile> discards;
 		playerDiscards.push_back(discards);
 	}
-}
-
-Server::~Server() {
-	delete rng;
 }
 
 void Server::run() {
@@ -74,6 +70,11 @@ void Server::run() {
 		sf::Packet packet;
 		packet << hand;
 		m_clients[p].send(packet);
+
+		DrawPacket draw(drawTile());
+		packet.clear();
+		packet << draw;
+		m_clients[p].send(packet);
 	}
 
 	while (true) {} // Loop to keep the console open for debugging
@@ -88,7 +89,7 @@ void Server::determineSeating() {
 	 */
 
 	std::uniform_int_distribution<int> dist(0, m_NUMPLAYERS);
-	int dealer = dist(*rng); // The dealer of a hand is always in east position that hand
+	m_dealer = dist(*rng); // The dealer of a hand is always in east position that hand
 }
 
 void Server::redistributeTiles() {
@@ -123,4 +124,12 @@ void Server::redistributeTiles() {
 			playerHands[p].push_back(tiles[p * playerHandMaxSize + t]);
 		}
 	}
+}
+
+Tile Server::drawTile() {
+	if (liveWall.empty())
+		return NUM_OF_TILES;
+	Tile draw = liveWall.back();
+	liveWall.pop_back();
+	return draw;
 }
