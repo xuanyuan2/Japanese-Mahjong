@@ -31,11 +31,13 @@ This file handles the operation of the client.
 #include "Client.h"
 #include "../MPacket.h"
 
-Client::Client(sf::TcpSocket& server, int NUMPLAYERS, sf::String usernames[]) :
+// Constructor for client class
+Client::Client(sf::TcpSocket& server, int NUMPLAYERS, sf::String usernames[], sf::Int8 playerNo) :
 	m_server(server)
-{ // Constructor for client class
+{ 
 	m_NUMPLAYERS = NUMPLAYERS;
 	m_usernames = usernames;
+	m_playerNo = playerNo;
 
 	if (!m_font.loadFromFile(FONT)) {
 		exit(1);
@@ -51,7 +53,7 @@ void Client::run() {
 	packet >> firstHand;
 	const Tile* firstTiles = firstHand.getHand();
 	for (int i = 0; i < 13; i++) {
-		hand[i] = firstTiles[i];
+		hand.push_back(firstTiles[i]);
 	}
 	std::sort(std::begin(hand), std::end(hand));
 	

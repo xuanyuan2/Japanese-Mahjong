@@ -199,7 +199,7 @@ int main() {
 
 	std::cout << "Launching game!" << std::endl;
 	std::cout << "Please do not close this window during the course of the game." << std::endl;
-	Client client(socket, NUMPLAYERS, usernames);
+	Client client(socket, NUMPLAYERS, usernames, playerNo);
 	client.run();
 
     return 0;

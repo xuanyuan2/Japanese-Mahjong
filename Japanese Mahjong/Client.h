@@ -30,6 +30,7 @@ This file handles the operation of the client.
 #define CLIENT_H
 #include <SFML/Network.hpp>
 #include <SFML/Graphics.hpp>
+#include <vector>
 
 #include "../Tile.h"
 
@@ -37,7 +38,7 @@ const std::string FONT = "sazanami-gothic.ttf";
 
 class Client {
 public:
-	Client(sf::TcpSocket& server, int NUMPLAYERS, sf::String usernames[]); // Constructor
+	Client(sf::TcpSocket& server, int NUMPLAYERS, sf::String usernames[], sf::Int8 playerNo); // Constructor
 	void run(); // Order the client to run the game
 private:
 	// Private methods
@@ -49,11 +50,12 @@ private:
 	sf::TcpSocket& m_server;
 	int m_NUMPLAYERS;
 	sf::String* m_usernames;
+	sf::Int8 m_playerNo;
 	sf::Font m_font;
 	sf::Texture m_tileTextures[NUM_OF_TILE_TEXTURES];
 	sf::Texture m_facedownTileTexture;
 
-	Tile hand[13];
+	std::vector<Tile> hand;
 
 	// Private constant members
 	unsigned int m_width = 800;

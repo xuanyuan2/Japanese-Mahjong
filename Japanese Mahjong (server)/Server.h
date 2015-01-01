@@ -35,6 +35,7 @@ This file handles the operation of the server.
 class Server {
 public:
 	Server(sf::TcpSocket clients[], int NUMPLAYERS, sf::String usernames[]);
+	~Server(); // Destructor
 	void run(); // Order the server to run the game
 private:
 	// Private Methods
@@ -45,6 +46,10 @@ private:
 	sf::TcpSocket* m_clients; // Array of sockets connected to clients
 	int m_NUMPLAYERS;
 	sf::String* m_usernames;
+	std::mt19937* rng;
+	int dealer; // The player who is currently dealer (and hence east)
+	int hand = 0; // There are four or more of these every round
+	int round = 0; // Japanese Mahjong is typically played with two rounds (han-chan)
 	std::vector< std::vector<Tile> > playerHands, playerDiscards;
 	std::vector<Tile> liveWall, deadWall;
 };

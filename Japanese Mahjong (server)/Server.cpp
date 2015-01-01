@@ -38,6 +38,9 @@ Server::Server(sf::TcpSocket clients[], int NUMPLAYERS, sf::String usernames[]) 
 	m_NUMPLAYERS = NUMPLAYERS;
 	m_usernames = usernames;
 
+	std::random_device rd;
+	rng = new std::mt19937(rd());
+
 	// Player hands
 	for (int i = 0; i < NUMPLAYERS; ++i) {
 		std::vector<Tile> hand;
@@ -48,6 +51,10 @@ Server::Server(sf::TcpSocket clients[], int NUMPLAYERS, sf::String usernames[]) 
 		std::vector<Tile> discards;
 		playerDiscards.push_back(discards);
 	}
+}
+
+Server::~Server() {
+	delete rng;
 }
 
 void Server::run() {
@@ -73,7 +80,15 @@ void Server::run() {
 }
 
 void Server::determineSeating() {
+	/* Initial seating order (i.e. Players 1-4) was determined by server from first to 
+	 * last to connect. There are complex methods in real mahjong to determine order 
+	 * of play and seat wind distribution, but this can be vastly simplified by
+	 * simply letting an RNG randomly determine who is dealer and determining winds
+	 * from there.
+	 */
 
+	std::uniform_int_distribution<int> dist(0, m_NUMPLAYERS);
+	int dealer = dist(*rng); // The dealer of a hand is always in east position that hand
 }
 
 void Server::redistributeTiles() {
@@ -86,12 +101,11 @@ void Server::redistributeTiles() {
 	int deadWallMaxSize = 14;
 	int liveWallMaxSize = 70;
 
+	// Shuffle all tiles 
 	Tile tiles[NUM_OF_TILES];
 	for (Tile i = 0; i < NUM_OF_TILES; ++i)
 		tiles[i] = i;
-	std::random_device rd;
-	std::mt19937 g(rd());
-	std::shuffle(std::begin(tiles), std::end(tiles), g);
+	std::shuffle(std::begin(tiles), std::end(tiles), *rng);
 	
 	// Fill the live wall
 	for (int j = 0; j < liveWallMaxSize; ++j)
@@ -102,6 +116,8 @@ void Server::redistributeTiles() {
 		deadWall.push_back(tiles[k]);
 
 	// Fill out players' hands
+	// Note - if there are less than 4 players, this code will not distribute all 136 tiles.
+	// Not an issue for normal mahjong, but if 3 player is implemented, this must be fixed
 	for (int p = 0; p < m_NUMPLAYERS; ++p) {
 		for (int t = liveWallMaxSize + deadWallMaxSize; t < NUM_OF_TILES; t++) {
 			playerHands[p].push_back(tiles[p * playerHandMaxSize + t]);
