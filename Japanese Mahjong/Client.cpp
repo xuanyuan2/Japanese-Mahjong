@@ -27,6 +27,7 @@ This file handles the operation of the client.
 */
 
 #include <iostream>
+#include <SFML/Audio.hpp>
 
 #include "Client.h"
 #include "../MPacket.h"
@@ -62,6 +63,10 @@ void Client::run() {
 	m_server.receive(packet);
 	packet >> firstDraw;
 	drawnTile = firstDraw.getDraw();
+
+	sf::Music bgm;
+	if (!bgm.openFromFile("music.ogg")) exit(1);
+	bgm.play();
 	
 	// Test code from SFML
 	// create the window
@@ -106,6 +111,8 @@ void Client::run() {
 		// end the current frame
 		window.display();
 	}
+
+	bgm.stop();
 }
 
 void Client::loadTileTextures() {
