@@ -47,7 +47,7 @@ enum MPacketHeader {
 
 class MPacket { // Base class of all Mpackets
 public:
-	Tile getHeader() { return m_header; } // Return this packet's header
+	Tile getHeader() const { return m_header; } // Return this packet's header
 protected:
 	MPacket() {} // Protected constructor to prevent instantiation of this base class
 	Tile m_header; // Contains information on the MPacket type
@@ -82,7 +82,7 @@ public:
 	FirstHandPacket() {
 		m_header = FIRST_HAND;
 	}
-	const Tile* getHand() { return m_hand; }
+	Tile* getHand() { return m_hand; }
 
 	// SFML Packet << overload to support
 	friend sf::Packet& operator<<(sf::Packet& packet, const FirstHandPacket& fhPacket) {
@@ -112,7 +112,7 @@ public:
 	DrawPacket() {
 		m_header = DRAW;
 	}
-	const Tile getDraw() { return m_draw; }
+	Tile getDraw() const { return m_draw; }
 
 	// SFML Packet << overload to support
 	friend sf::Packet& operator<<(sf::Packet& packet, const DrawPacket& drawPacket) {
@@ -132,7 +132,7 @@ public:
 	DiscardSelfPacket() {
 		m_header = DISCARD_SELF;
 	}
-	const Tile getDiscard() { return m_discard; }
+	Tile getDiscard() const { return m_discard; }
 
 	//// SFML Packet << overload to support
 	//friend sf::Packet& operator<<(sf::Packet& packet, const DiscardSelfPacket& dsPacket) {
@@ -152,7 +152,7 @@ public:
 	DiscardPacket() {
 		m_header = DISCARD;
 	}
-	const Tile getDiscard() { return m_discard; }
+	Tile getDiscard() const { return m_discard; }
 
 	//// SFML Packet << overload to support
 	//friend sf::Packet& operator<<(sf::Packet& packet, const DiscardPacket& dPacket) {
