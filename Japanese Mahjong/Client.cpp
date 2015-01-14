@@ -39,17 +39,33 @@ Client::Client(sf::TcpSocket& server, int NUMPLAYERS, sf::String usernames[], sf
 	m_NUMPLAYERS = NUMPLAYERS;
 	m_usernames = usernames;
 	m_playerNo = playerNo;
+	m_server.setBlocking(false);
 
 	if (!m_font.loadFromFile(FONT)) {
-		exit(1);
+		reportLoadFailure();
 	}
+}
+
+void Client::reportLoadFailure() {
+	// SFML's asset loading functions thankfully have their own error messages, so only the following is necessary
+	std::cerr << "Please take note of the reported error and manually terminate this program." << std::endl;
+	while (true); // To give the user a chance to read the error reported by the SFML library
 }
 
 void Client::run() {
 	loadTileTextures();
 
-	// This code is for debugging
-	sf::Packet packet;
+	sf::Music bgm;
+	if (!bgm.openFromFile("music.ogg")) reportLoadFailure();
+	bgm.play();
+
+	sf::Packet dealerPacket;
+	m_server.receive(dealerPacket);
+	int dealer;
+	dealerPacket >> dealer;
+	match.reset(new Match(dealer));
+
+	/*sf::Packet packet;
 	m_server.receive(packet);
 	FirstHandPacket firstHand;
 	packet >> firstHand;
@@ -62,43 +78,43 @@ void Client::run() {
 	packet.clear();
 	m_server.receive(packet);
 	packet >> firstDraw;
-	drawnTile = firstDraw.getDraw();
+	drawnTile = firstDraw.getDraw();*/
 
-	sf::Music bgm;
-	if (!bgm.openFromFile("music.ogg")) exit(1);
-	bgm.play();
-	
-	// Test code from SFML
 	// create the window
 	sf::RenderWindow window(sf::VideoMode(m_width, m_height), "Japanese Mahjong");
 
 	// run the program as long as the window is open
-	while (window.isOpen())
-	{
+	while (window.isOpen())	{
+		// Receive server info
+		receiveInformation();
+
+		// Game logic loop
+		if (match->isActive()) {
+		}
+
 		// check all the window's events that were triggered since the last iteration of the loop
 		sf::Event event;
-		while (window.pollEvent(event))
-		{
+		while (window.pollEvent(event)) {
 			// "close requested" event: we close the window
+			// TODO: Send shutdown signal to server and other clients
 			if (event.type == sf::Event::Closed)
 				window.close();
-			// TODO: Send shutdown signal to server and other clients
-			// The follwoing elseif clause is VERY much debug code! Magic numbers, ahoy!
-			else if (event.type == sf::Event::MouseButtonReleased) {
-				sf::Vector2i pos = sf::Mouse::getPosition(window);
-				std::cout << "(" << pos.x << ", " << pos.y << ")" << std::endl;
-				// Hand
-				if (pos.x > 100 && pos.x < 646 &&
-					pos.y > 526 && pos.y < 600) {
-					int i = floor((pos.x - 100) / 42);
-					discard(i);
-				}
-				// Draw
-				else if (pos.x > 698 && pos.x < 740 &&
-					pos.y > 526 && pos.y < 600){
-					discard(14);
-				}
-			}
+			// The following elseif clause for discarding tiels is VERY much debug code! Magic numbers, ahoy!
+			//else if (event.type == sf::Event::MouseButtonReleased) {
+			//	sf::Vector2i pos = sf::Mouse::getPosition(window);
+			//	std::cout << "(" << pos.x << ", " << pos.y << ")" << std::endl;
+			//	// Hand
+			//	if (pos.x > 100 && pos.x < 646 &&
+			//		pos.y > 526 && pos.y < 600) {
+			//		int i = floor((pos.x - 100) / 42);
+			//		discard(i);
+			//	}
+			//	// Draw
+			//	else if (pos.x > 698 && pos.x < 740 &&
+			//		pos.y > 526 && pos.y < 600){
+			//		discard(14);
+			//	}
+			//}
 		}
 
 		// clear the window
@@ -106,7 +122,7 @@ void Client::run() {
 		window.clear(mahjongGreen);
 
 		// Draw stuff
-		Client::render(window);
+		render(window);
 
 		// end the current frame
 		window.display();
@@ -120,25 +136,25 @@ void Client::loadTileTextures() {
 	for (int i = 0; i < NUM_OF_TILE_TEXTURES - 3 ; i++) {
 		Tile tile = i * 4;
 		if (!m_tileTextures[i].loadFromFile(filename(tile)))
-			exit(1); // Images missing
+			reportLoadFailure(); // Images missing
 	}
 
 	// Load the red dora into the last three textures
 	Tile tile = PIN_5_RED; // Pin 5 red
 	if (!m_tileTextures[34].loadFromFile(filename(tile)))
-		exit(1);
+		reportLoadFailure();
 
 	tile = SOU_5_RED; // Sou 5 red
 	if (!m_tileTextures[35].loadFromFile(filename(tile)))
-		exit(1);
+		reportLoadFailure();
 
 	tile = WAN_5_RED; // Wan 5 red
 	if (!m_tileTextures[36].loadFromFile(filename(tile)))
-		exit(1);
+		reportLoadFailure();
 
 	// Load the facedown tile texture
 	if (!m_facedownTileTexture.loadFromFile("tiles/facedown.png"))
-		exit(1);
+		reportLoadFailure();
 }
 
 int Client::tileTextureNo(Tile tile) {
@@ -150,6 +166,29 @@ int Client::tileTextureNo(Tile tile) {
 	}
 	else index = typeOf(tile);
 	return index;
+}
+
+void Client::receiveInformation() {
+	while (true) { // Allow for receipt of multiple packets per tick
+		sf::Packet packet;
+		if (m_server.receive(packet) == sf::Socket::NotReady) return; // No information
+		// TODO: Process received information
+		int packetHeader;
+		packet >> packetHeader;
+		switch (packetHeader) {
+		case MATCH_UPDATE: {
+			MatchPacket updateInformation;
+			packet >> updateInformation;
+			match->update(updateInformation.getScoreChanges(), updateInformation.getRepeat());
+			break;
+		}
+		case FIRST_HAND:
+			break;
+		case DRAW:
+			break;
+		default: break;
+		}
+	}
 }
 
 void Client::render(sf::RenderWindow& window) {

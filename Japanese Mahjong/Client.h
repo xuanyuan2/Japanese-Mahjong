@@ -31,8 +31,11 @@ This file handles the operation of the client.
 #include <SFML/Network.hpp>
 #include <SFML/Graphics.hpp>
 #include <vector>
+#include <memory>
 
 #include "../Tile.h"
+#include "../MPacket.h"
+#include "../Match.h"
 
 const std::string FONT = "sazanami-gothic.ttf";
 
@@ -42,10 +45,11 @@ public:
 	void run(); // Order the client to run the game
 private:
 	// Private methods
+	void reportLoadFailure(); // Called if Client ever fails an asset load
 	void loadTileTextures(); // Loads textures for the tiles
 	int tileTextureNo(Tile tile); // Gets the index of the texture corresponding to the tile
+	void receiveInformation(); // Receive and process information from the game server
 	void render(sf::RenderWindow& window); // Renders the 2D state of the world to the window in preparation for display
-
 	void discard(int i); // Discard the ith tile from the hand (i = 14 is the draw instead)
 
 	// Private members
@@ -57,8 +61,10 @@ private:
 	sf::Texture m_tileTextures[NUM_OF_TILE_TEXTURES];
 	sf::Texture m_facedownTileTexture;
 
+	std::unique_ptr<Match> match;
 	Tile hand[13];
 	Tile drawnTile = NUM_OF_TILES; // Defaults to error/no drawn tile
+	bool isMyTurn = false; 
 
 	// Private constant members
 	unsigned int m_width = 800;

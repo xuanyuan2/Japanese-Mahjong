@@ -32,6 +32,7 @@ This file handles the operation of the server.
 #include <memory>
 
 #include "../Tile.h"
+#include "../Match.h"
 
 class Server {
 public:
@@ -39,18 +40,23 @@ public:
 	void run(); // Order the server to run the game
 private:
 	// Private Methods
-	void determineSeating(); // Decide which player starts with what wind and who is dealer
+	sf::Int8 determineDealer(); // Decide which player starts with what wind and who is dealer
 	void redistributeTiles(); // Takes back all tiles and distributes them to players and walls
+	void transmitHands(); // Transmits initial hands to all players
+	bool handOver(); // Checks to see if the hand is over (no tiles left to draw, a player has won, etc.)
 	Tile drawTile(); // Returns a tile from the live wall, or NUM_OF_TILES if the live wall is empty
+	// At the end of a hand, returns the changes to each players' score
+	// Updates the repeat parameter based on whether or not the hand should be "repeated",
+	// with respect to the 4 hand per round limit
+	std::vector<int> scoreChanges(bool& repeat); 
+	void transmitMatchUpdate(std::vector<int> scoreChanges, bool repeat); // Update clients' match info
 
 	// Private variables
 	sf::TcpSocket* m_clients; // Array of sockets connected to clients
 	int m_NUMPLAYERS;
 	sf::String* m_usernames;
 	std::unique_ptr<std::mt19937> rng;
-	int m_dealer; // The player who is currently dealer (and hence east)
-	int m_hand = 0; // There are four or more of these every round
-	int m_round = 0; // Japanese Mahjong is typically played with two rounds (han-chan)
 	std::vector< std::vector<Tile> > playerHands, playerDiscards;
 	std::vector<Tile> liveWall, deadWall;
+	std::unique_ptr<Match> match;
 };

@@ -27,9 +27,11 @@ This file manages the state of the match for client and server - rounds,
 scores, etc. 
 */
 
+#include <vector>
+
 const int NUM_OF_ROUNDS = 2; // This number ("han-chan") is typical of Japanese Mahjong
 const int INITIAL_SCORE = 25000; // This is also a typical value
-const int NUMPLAYERS = 4;
+const int NUM_PLAYERS = 4;
 
 // These are the names of the four possible rounds, in order
 enum Rounds {
@@ -54,17 +56,20 @@ public:
 	Match(int dealerNo); // Constructor - will initialize match with default parameters
 	int getRound() const { return m_round; }
 	int getHand() const { return m_hand;  }
-	int getDealer() const;
-	int getSeat(int playerNo) const;
+	int getDealer() const; // Returns the dealer of the current hand
+	int getSeat(int playerNo) const { return m_seats[playerNo]; } // Returns the seat of the indicated player
+	int getCurrentPlayer() const { return m_turn; } // Returns whose turn (to discard) it currently is
 	bool isActive() const; // Checks to see if the match can continue or is over
 	// Updates scores based on the differences passed into the array
-	// If the repeat flag is set to true, the hand does not count towards round rotation
-	// The hand is then incremented
-	void update(int scoreChange[NUMPLAYERS], bool repeat); 
+	// If the repeat flag is set to true, the hand is "repeated" - it does not
+	// count towards the 4 hand per round limit
+	// The hand count is then incremented
+	void update(std::vector<int> scoreChanges, bool repeat); 
 private:
 	int m_round; // The current round number
 	int m_hand; // The current hand number
+	int m_turn; // Whose turn (to discard) it currently is
 	int m_handsUntilNextRound; 
-	int m_scores[NUMPLAYERS]; // Current scores of all players
-	int m_seats[NUMPLAYERS]; // The seat of all players
+	int m_scores[NUM_PLAYERS]; // Current scores of all players
+	int m_seats[NUM_PLAYERS]; // The seat of all players
 };

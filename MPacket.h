@@ -37,8 +37,11 @@ the server and the client into Mahjong Packets ("MPacket").
 
 const int MAXNUMOFTILES = 14; // Only dealers ever get this many tiles (at the start)
 
+// All MPackets implicitly package a header of this type when stored with <<
+// On the receiving end, the header must manually be extracted with >>, so that
+// the recepient can determine the type of MPacket to be extracted
 enum MPacketHeader { 
-	STATE_UPDATE, // This packet contains information about players
+	MATCH_UPDATE, // This packet updates the match state
 	FIRST_HAND, // Indicates this packet contains the player's first of tiles
 	DRAW, // Server sending player information on draw
 	DISCARD_SELF, // Player informing server of his discard choice
@@ -53,22 +56,42 @@ protected:
 	Tile m_header; // Contains information on the MPacket type
 };
 
-class StatePacket : public MPacket {
+class MatchPacket : public MPacket {
 public:
-	StatePacket() {
-		m_header = STATE_UPDATE;
+	MatchPacket(std::vector<int> scoreChanges, bool repeat) {
+		m_header = MATCH_UPDATE;
+		m_scoreChanges = scoreChanges;
+		m_repeat = repeat;
+	}
+	MatchPacket() {
+		m_header = MATCH_UPDATE;
+	}
+	std::vector<sf::Int32> getScoreChanges() { return m_scoreChanges; }
+	bool getRepeat() { return m_repeat;  }
+	// SFML Packet << overload to support
+	friend sf::Packet& operator<<(sf::Packet& packet, const MatchPacket& matchPacket) {
+		packet << matchPacket.m_header;	
+
+		packet << matchPacket.m_scoreChanges.size();
+		for (int i = 0; i < matchPacket.m_scoreChanges.size(); ++i)
+			packet << (sf::Int32)matchPacket.m_scoreChanges[i];
+		return packet << matchPacket.m_repeat;
 	}
 
-	//// SFML Packet << overload to support
-	//friend sf::Packet& operator<<(sf::Packet& packet, const StatePacket& statePacket) {
-	//}
-
-	//// SFML Packet >> overload to support
-	//friend sf::Packet& operator>>(sf::Packet& packet, StatePacket& statePacket) {
-
-	//}
+	// SFML Packet >> overload to support
+	friend sf::Packet& operator>>(sf::Packet& packet, MatchPacket& matchPacket) {
+		int sizeOfVector;
+		packet >> sizeOfVector;
+		for (int i = 0; i < sizeOfVector; ++i) {
+			int scoreChange;
+			packet >> scoreChange;
+			matchPacket.m_scoreChanges.push_back(scoreChange);
+		}
+		return packet >> matchPacket.m_repeat;
+	}
 private:
-	// State update info goes here
+	std::vector<sf::Int32> m_scoreChanges;
+	bool m_repeat;
 };
 
 class FirstHandPacket : public MPacket {
@@ -86,6 +109,7 @@ public:
 
 	// SFML Packet << overload to support
 	friend sf::Packet& operator<<(sf::Packet& packet, const FirstHandPacket& fhPacket) {
+		packet << fhPacket.m_header;
 		for (int i = 0; i < 13; ++i) {
 			packet << fhPacket.m_hand[i];
 		}
@@ -116,6 +140,7 @@ public:
 
 	// SFML Packet << overload to support
 	friend sf::Packet& operator<<(sf::Packet& packet, const DrawPacket& drawPacket) {
+		packet << drawPacket.m_header;
 		return packet << drawPacket.m_draw;
 	}
 

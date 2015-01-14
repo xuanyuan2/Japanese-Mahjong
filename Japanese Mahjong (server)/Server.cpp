@@ -55,32 +55,36 @@ Server::Server(sf::TcpSocket clients[], int NUMPLAYERS, sf::String usernames[]) 
 
 void Server::run() {
 	std::cout << "Game launched." << std::endl;
-	determineSeating();
 
-	redistributeTiles();
-
-	// The following chunk of code is for debugging
+	sf::Int8 dealer = determineDealer();
+	match.reset(new Match(dealer));
+	sf::Packet dealerPacket;
 	for (int p = 0; p < m_NUMPLAYERS; ++p) {
-		std::cout << "Player " << p + 1 << std::endl;
-		for (int t = 0; t < 13; t++) {
-			std::cout << (int)playerHands[p][t] << std::endl;
-		}
-
-		FirstHandPacket hand(playerHands[p]);
-		sf::Packet packet;
-		packet << hand;
-		m_clients[p].send(packet);
-
-		DrawPacket draw(drawTile());
-		packet.clear();
-		packet << draw;
-		m_clients[p].send(packet);
+		dealerPacket << dealer;
+		m_clients[p].send(dealerPacket);
 	}
 
-	while (true) {} // Loop to keep the console open for debugging
+	// Central game loop - game only continues so long as the match is actually ongoing
+	// Each iteration of this loop covers one hand
+	while (match->isActive()) {
+		redistributeTiles();
+		transmitHands();
+		
+		// Most of gameplay - drawing, discarding, melding - occurs in this loop
+		while (!handOver()) {
+
+		}
+
+		// The hand has ended
+		bool repeat;
+		std::vector<int> scoreUpdate = scoreChanges(repeat);
+		transmitMatchUpdate(scoreUpdate, repeat);
+		match->update(scoreUpdate, repeat);
+	}
+	
 }
 
-void Server::determineSeating() {
+sf::Int8 Server::determineDealer() {
 	/* Initial seating order (i.e. Players 1-4) was determined by server from first to 
 	 * last to connect. There are complex methods in real mahjong to determine order 
 	 * of play and seat wind distribution, but this can be vastly simplified by
@@ -89,7 +93,7 @@ void Server::determineSeating() {
 	 */
 
 	std::uniform_int_distribution<int> dist(0, m_NUMPLAYERS);
-	m_dealer = dist(*rng); // The dealer of a hand is always in east position that hand
+	return dist(*rng); 
 }
 
 void Server::redistributeTiles() {
@@ -123,6 +127,44 @@ void Server::redistributeTiles() {
 		for (int t = liveWallMaxSize + deadWallMaxSize; t < NUM_OF_TILES; t++) {
 			playerHands[p].push_back(tiles[p * playerHandMaxSize + t]);
 		}
+	}
+}
+
+void Server::transmitHands() {
+	for (int p = 0; p < m_NUMPLAYERS; ++p) {
+		FirstHandPacket hand(playerHands[p]);
+		sf::Packet packet;
+		packet << hand;
+		m_clients[p].send(packet);
+
+		/*DrawPacket draw(drawTile());
+		packet.clear();
+		packet << draw;
+		m_clients[p].send(packet);*/
+	}
+}
+
+bool Server::handOver() {
+	if (liveWall.size() < 0) return true; // There are no tiles left to draw
+	return false; // TODO: Replace with code checking for victory
+}
+
+std::vector<int> Server::scoreChanges(bool& repeat) {
+	std::vector<int> output;
+	// TODO: Actually score hands
+	for (int i = 0; i < m_NUMPLAYERS; i++) {
+		output.push_back(0);
+	}
+	// TODO: Actually check if hand should repeat
+	repeat = false;
+	return output;
+}
+
+void Server::transmitMatchUpdate(std::vector<int> scoreChanges, bool repeat) {
+	for (int p = 0; p < m_NUMPLAYERS; ++p) {
+		sf::Packet packet;
+		
+		m_clients[p].send(packet);
 	}
 }
 

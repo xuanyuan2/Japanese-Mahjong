@@ -34,13 +34,13 @@ Match::Match(int dealerNo) {
 	m_hand = 0;
 	m_handsUntilNextRound = 4;
 
-	for (int i = 0; i < NUMPLAYERS; ++i) {
+	for (int i = 0; i < NUM_PLAYERS; ++i) {
 		m_scores[i] = 25000;
 	}
 
 	int seat = EAST_SEAT;
-	for (int i = dealerNo; i < dealerNo + NUMPLAYERS; ++i) {
-		m_seats[i % NUMPLAYERS] = seat;
+	for (int i = dealerNo; i < dealerNo + NUM_PLAYERS; ++i) {
+		m_seats[i % NUM_PLAYERS] = seat;
 		seat = (seat + 1) % 4;
 	}
 }
@@ -49,16 +49,16 @@ Match::Match(int dealerNo) {
 
 bool Match::isActive() const {
 	if (m_round >= NUM_OF_ROUNDS) return false;
-	for (int i = 0; i < NUMPLAYERS; i++) {
+	for (int i = 0; i < NUM_PLAYERS; i++) {
 		// Yes, players with exactly 0 points can continue
 		if (m_scores[i] < 0) return false; 
 	}
 	return true;
 }
 
-void Match::update(int scoreChange[NUMPLAYERS], bool repeat) {
-	for (int i = 0; i < NUMPLAYERS; ++i) 
-		m_scores[i] += scoreChange[i];
+void Match::update(std::vector<int> scoreChanges , bool repeat) {
+	for (int i = 0; i < NUM_PLAYERS; ++i)
+		m_scores[i] += scoreChanges[i];
 	if (!repeat) { // If this hand counts towards round advancement
 		if (m_handsUntilNextRound == 1) { // If this was the last hand of the round
 			m_round++;
