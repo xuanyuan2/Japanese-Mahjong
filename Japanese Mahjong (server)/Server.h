@@ -40,7 +40,7 @@ public:
 	void run(); // Order the server to run the game
 private:
 	// Private Methods
-	sf::Int8 determineDealer(); // Decide which player starts with what wind and who is dealer
+	void handleDealership(); // Decide which player is dealer and distributes that decision
 	void redistributeTiles(); // Takes back all tiles and distributes them to players and walls
 	void transmitHands(); // Transmits initial hands to all players
 	bool handOver(); // Checks to see if the hand is over (no tiles left to draw, a player has won, etc.)

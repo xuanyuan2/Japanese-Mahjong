@@ -100,21 +100,21 @@ void Client::run() {
 			if (event.type == sf::Event::Closed)
 				window.close();
 			// The following elseif clause for discarding tiels is VERY much debug code! Magic numbers, ahoy!
-			//else if (event.type == sf::Event::MouseButtonReleased) {
-			//	sf::Vector2i pos = sf::Mouse::getPosition(window);
-			//	std::cout << "(" << pos.x << ", " << pos.y << ")" << std::endl;
-			//	// Hand
-			//	if (pos.x > 100 && pos.x < 646 &&
-			//		pos.y > 526 && pos.y < 600) {
-			//		int i = floor((pos.x - 100) / 42);
-			//		discard(i);
-			//	}
-			//	// Draw
-			//	else if (pos.x > 698 && pos.x < 740 &&
-			//		pos.y > 526 && pos.y < 600){
-			//		discard(14);
-			//	}
-			//}
+			else if (inputAllowed && event.type == sf::Event::MouseButtonReleased) {
+				sf::Vector2i pos = sf::Mouse::getPosition(window);
+				std::cout << "(" << pos.x << ", " << pos.y << ")" << std::endl;
+				// Hand
+				if (pos.x > 100 && pos.x < 646 &&
+					pos.y > 526 && pos.y < 600) {
+					int i = floor((pos.x - 100) / 42);
+					discard(i);
+				}
+				// Draw
+				else if (pos.x > 698 && pos.x < 740 &&
+					pos.y > 526 && pos.y < 600){
+					discard(14);
+				}
+			}
 		}
 
 		// clear the window

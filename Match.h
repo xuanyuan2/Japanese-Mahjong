@@ -41,15 +41,19 @@ enum Rounds {
 	NORTH_ROUND
 };
 
-// These are the names of the player seating positions
+// These are the names of the player seating positions going clockwise
 enum Seats {
 	EAST_SEAT, // Also the dealer of any given hand
 	NORTH_SEAT,
-	SOUTH_SEAT,
-	WEST_SEAT
+	WEST_SEAT,
+	SOUTH_SEAT
 };
 // CAUTION: player seat winds have both inverted order relative to the round winds and
-// flipped orientation relative to an actual compass (west is to south's RIGHT, etc.)
+// flipped orientation relative to an actual compass (west is to south's RIGHT, etc.).
+// Between each hand (unless a hand is being repeated), seat winds rotate such that
+// east player becomes north, north becomes west, etc.
+// Turn order flows counter-clockwise instead of clockwise, so that
+// east player -> south player -> west player -> north player -> east again.
 
 class Match {
 public:
@@ -59,6 +63,7 @@ public:
 	int getDealer() const; // Returns the dealer of the current hand
 	int getSeat(int playerNo) const { return m_seats[playerNo]; } // Returns the seat of the indicated player
 	int getCurrentPlayer() const { return m_turn; } // Returns whose turn (to discard) it currently is
+	void nextTurn(); // Advance to the next turn
 	bool isActive() const; // Checks to see if the match can continue or is over
 	// Updates scores based on the differences passed into the array
 	// If the repeat flag is set to true, the hand is "repeated" - it does not
@@ -66,9 +71,9 @@ public:
 	// The hand count is then incremented
 	void update(std::vector<int> scoreChanges, bool repeat); 
 private:
-	int m_round; // The current round number
+	int m_round; // The current round number (uses the enum Rounds)
 	int m_hand; // The current hand number
-	int m_turn; // Whose turn (to discard) it currently is
+	int m_turn; // Whose turn (to discard) it currently is (uses the enum Seats)
 	int m_handsUntilNextRound; 
 	int m_scores[NUM_PLAYERS]; // Current scores of all players
 	int m_seats[NUM_PLAYERS]; // The seat of all players

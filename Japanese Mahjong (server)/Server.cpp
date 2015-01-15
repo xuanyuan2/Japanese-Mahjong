@@ -56,13 +56,7 @@ Server::Server(sf::TcpSocket clients[], int NUMPLAYERS, sf::String usernames[]) 
 void Server::run() {
 	std::cout << "Game launched." << std::endl;
 
-	sf::Int8 dealer = determineDealer();
-	match.reset(new Match(dealer));
-	sf::Packet dealerPacket;
-	for (int p = 0; p < m_NUMPLAYERS; ++p) {
-		dealerPacket << dealer;
-		m_clients[p].send(dealerPacket);
-	}
+	handleDealership();
 
 	// Central game loop - game only continues so long as the match is actually ongoing
 	// Each iteration of this loop covers one hand
@@ -84,16 +78,24 @@ void Server::run() {
 	
 }
 
-sf::Int8 Server::determineDealer() {
+void Server::handleDealership() {
 	/* Initial seating order (i.e. Players 1-4) was determined by server from first to 
 	 * last to connect. There are complex methods in real mahjong to determine order 
 	 * of play and seat wind distribution, but this can be vastly simplified by
-	 * simply letting an RNG randomly determine who is dealer and determining winds
-	 * from there.
+	 * simply letting an RNG randomly determine who is dealer. Player seat wind can
+	 * then be determined from there (this is handled by the match object).
 	 */
 
 	std::uniform_int_distribution<int> dist(0, m_NUMPLAYERS);
-	return dist(*rng); 
+	int dealer = dist(*rng); 
+	match.reset(new Match(dealer));
+
+	// Relay the information to all players
+	sf::Packet dealerPacket;
+	for (int p = 0; p < m_NUMPLAYERS; ++p) {
+		dealerPacket << dealer;
+		m_clients[p].send(dealerPacket);
+	}
 }
 
 void Server::redistributeTiles() {

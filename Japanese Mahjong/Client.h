@@ -64,7 +64,7 @@ private:
 	std::unique_ptr<Match> match;
 	Tile hand[13];
 	Tile drawnTile = NUM_OF_TILES; // Defaults to error/no drawn tile
-	bool isMyTurn = false; 
+	bool inputAllowed = false; // Players don't always have actions available to them - this is coordinated by the server
 
 	// Private constant members
 	unsigned int m_width = 800;

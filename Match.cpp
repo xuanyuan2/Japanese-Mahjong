@@ -38,6 +38,7 @@ Match::Match(int dealerNo) {
 		m_scores[i] = 25000;
 	}
 
+	m_turn = dealerNo; // The dealer is always first to play
 	int seat = EAST_SEAT;
 	for (int i = dealerNo; i < dealerNo + NUM_PLAYERS; ++i) {
 		m_seats[i % NUM_PLAYERS] = seat;
@@ -45,7 +46,10 @@ Match::Match(int dealerNo) {
 	}
 }
 
-
+int Match::getDealer() const {
+	for (int p = 0; p < NUM_PLAYERS; ++p) 
+		if (m_seats[p] == EAST_SEAT) return p;
+}
 
 bool Match::isActive() const {
 	if (m_round >= NUM_OF_ROUNDS) return false;
@@ -56,18 +60,28 @@ bool Match::isActive() const {
 	return true;
 }
 
+void Match::nextTurn() {
+	// Equivalent to subtracting one - we have to go in reverse order of Seats
+	m_turn = (m_turn + 3) % 4; 
+}
+
 void Match::update(std::vector<int> scoreChanges , bool repeat) {
-	for (int i = 0; i < NUM_PLAYERS; ++i)
-		m_scores[i] += scoreChanges[i];
+	for (int p = 0; p < NUM_PLAYERS; ++p)
+		m_scores[p] += scoreChanges[p];
 	if (!repeat) { // If this hand counts towards round advancement
 		if (m_handsUntilNextRound == 1) { // If this was the last hand of the round
 			m_round++;
 			m_handsUntilNextRound = 4;
 			m_hand = 0;
 		}
-		else {
+		else { // This wasn't the last hand - the round continues
 			--m_handsUntilNextRound;
 		}
+		// Player seat wind rotation
+		for (int p = 0; p < NUM_PLAYERS; ++p) {
+			m_seats[p] = (m_seats[p] + 1) % 4;
+		}
 	}
+	m_turn = getDealer(); // Dealer is always first to play at the beginning of a round
 }
 
