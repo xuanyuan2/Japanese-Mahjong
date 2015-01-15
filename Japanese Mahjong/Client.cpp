@@ -64,32 +64,16 @@ void Client::run() {
 	int dealer;
 	dealerPacket >> dealer;
 	match.reset(new Match(dealer));
-
-	/*sf::Packet packet;
-	m_server.receive(packet);
-	FirstHandPacket firstHand;
-	packet >> firstHand;
-	const Tile* firstTiles = firstHand.getHand();
-	for (int i = 0; i < 13; i++) {
-		hand[i] = firstTiles[i];
-	}
-	std::sort(std::begin(hand), std::end(hand));
-	DrawPacket firstDraw;
-	packet.clear();
-	m_server.receive(packet);
-	packet >> firstDraw;
-	drawnTile = firstDraw.getDraw();*/
-
 	// create the window
 	sf::RenderWindow window(sf::VideoMode(m_width, m_height), "Japanese Mahjong");
 
 	// run the program as long as the window is open
 	while (window.isOpen())	{
-		// Receive server info
-		receiveInformation();
 
 		// Game logic loop
 		if (match->isActive()) {
+			// Receive server info
+			receiveInformation();
 		}
 
 		// check all the window's events that were triggered since the last iteration of the loop
@@ -99,17 +83,17 @@ void Client::run() {
 			// TODO: Send shutdown signal to server and other clients
 			if (event.type == sf::Event::Closed)
 				window.close();
-			// The following elseif clause for discarding tiels is VERY much debug code! Magic numbers, ahoy!
-			else if (inputAllowed && event.type == sf::Event::MouseButtonReleased) {
+			// The following elseif clause for discarding tiles is VERY much debug code! Magic numbers, ahoy!
+			else if (m_inputAllowed && event.type == sf::Event::MouseButtonReleased) {
 				sf::Vector2i pos = sf::Mouse::getPosition(window);
 				std::cout << "(" << pos.x << ", " << pos.y << ")" << std::endl;
-				// Hand
+				// Discard from hand
 				if (pos.x > 100 && pos.x < 646 &&
 					pos.y > 526 && pos.y < 600) {
 					int i = floor((pos.x - 100) / 42);
 					discard(i);
 				}
-				// Draw
+				// Discard draw
 				else if (pos.x > 698 && pos.x < 740 &&
 					pos.y > 526 && pos.y < 600){
 					discard(14);
@@ -172,47 +156,89 @@ void Client::receiveInformation() {
 	while (true) { // Allow for receipt of multiple packets per tick
 		sf::Packet packet;
 		if (m_server.receive(packet) == sf::Socket::NotReady) return; // No information
-		// TODO: Process received information
-		int packetHeader;
+		sf::Uint8 packetHeader;
 		packet >> packetHeader;
+		std::cerr << "Message received. Interpreting header type " << (int)packetHeader << "...";
 		switch (packetHeader) {
 		case MATCH_UPDATE: {
+			std::cerr << " match update received." << std::endl;
 			MatchPacket updateInformation;
 			packet >> updateInformation;
 			match->update(updateInformation.getScoreChanges(), updateInformation.getRepeat());
 			break;
 		}
 		case FIRST_HAND:
+			std::cerr << "first hand received." << std::endl;
+			getFirstHand(packet);
 			break;
 		case DRAW:
+			std::cerr << "new tile drawn." << std::endl;
+			getDraw(packet);
+			m_inputAllowed = true; // TODO: does drawing always mean it's time for user input?
 			break;
-		default: break;
+		case DISCARD: // This is specifically another player's discard
+			// TODO: Clients should keep track of other players' discards as well in Japanese mahjong
+			std::cerr << "another player's discard has been received." << std::endl;
+			match->nextTurn();
+			break;
+		default:
+			std::cerr << "error: message from server uninterpretable!" << std::endl;
+			while (true) {} // Hang
+			break;
 		}
 	}
+}
+
+void Client::getFirstHand(sf::Packet& packet) {
+	FirstHandPacket firstHand;
+	packet >> firstHand;
+	const Tile* firstTiles = firstHand.getHand();
+	for (int i = 0; i < 13; i++) {
+		m_hand[i] = firstTiles[i];
+	}
+}
+
+void Client::getDraw(sf::Packet& packet) {
+	DrawPacket firstDraw;
+	packet >> firstDraw;
+	m_drawnTile = firstDraw.getDraw();
+	std::cerr << "Drew: " << (int)m_drawnTile << std::endl;
 }
 
 void Client::render(sf::RenderWindow& window) {
 	// Render the hand (still testing)
 	for (int i = 0; i < 13; ++i) {
 		sf::Sprite testSprite;
-		testSprite.setTexture(m_tileTextures[tileTextureNo(hand[i])]);
+		testSprite.setTexture(m_tileTextures[tileTextureNo(m_hand[i])]);
 		testSprite.setPosition(sf::Vector2f(100 + 42 * i, 526));
 		window.draw(testSprite);
 	}
 
 	// Render the drawn tile (still testing)
-	if (drawnTile != NUM_OF_TILES) {
+	if (m_drawnTile != NUM_OF_TILES) {
 		sf::Sprite testSprite;
-		testSprite.setTexture(m_tileTextures[tileTextureNo(drawnTile)]);
+		testSprite.setTexture(m_tileTextures[tileTextureNo(m_drawnTile)]);
 		testSprite.setPosition(sf::Vector2f(110 + 42 * 14, 526));
 		window.draw(testSprite);
 	}
 }
 
 void Client::discard(int i) {
-	if (i != 14 && drawnTile != NUM_OF_TILES) {
-		hand[i] = drawnTile;
-		std::sort(std::begin(hand), std::end(hand));
+	Tile discardedTile;
+	if (i < 14 && m_drawnTile != NUM_OF_TILES) { // Discard from hand
+		discardedTile = m_hand[i];
+		m_hand[i] = m_drawnTile; // Replace the discarded tile with the drawn tile
+		std::sort(std::begin(m_hand), std::end(m_hand));
 	}
-	drawnTile = NUM_OF_TILES;
+	else discardedTile = m_drawnTile;
+	std::cerr << "Discarded: " << (int)discardedTile << std::endl;
+	// Inform server of discard
+	sf::Packet packet;
+	SelfDiscardPacket sdPacket(discardedTile);
+	std::cerr << (int)sdPacket.getDiscard() << std::endl;
+	packet << sdPacket;
+	m_server.send(packet);
+
+	m_inputAllowed = false;
+	m_drawnTile = NUM_OF_TILES; // Invalidate the drawn tile member variable (nothing drawn)
 }

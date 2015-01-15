@@ -44,16 +44,15 @@ enum MPacketHeader {
 	MATCH_UPDATE, // This packet updates the match state
 	FIRST_HAND, // Indicates this packet contains the player's first of tiles
 	DRAW, // Server sending player information on draw
-	DISCARD_SELF, // Player informing server of his discard choice
+	INPUT_REQUEST, // Server requesting player input of some form
+	SELF_DISCARD, // Player informing server of his discard choice
 	DISCARD // The server reports other players' discards
 };
 
 class MPacket { // Base class of all Mpackets
-public:
-	Tile getHeader() const { return m_header; } // Return this packet's header
 protected:
 	MPacket() {} // Protected constructor to prevent instantiation of this base class
-	Tile m_header; // Contains information on the MPacket type
+	sf::Uint8 m_header; // Contains information on the MPacket type
 };
 
 class MatchPacket : public MPacket {
@@ -68,6 +67,7 @@ public:
 	}
 	std::vector<sf::Int32> getScoreChanges() { return m_scoreChanges; }
 	bool getRepeat() { return m_repeat;  }
+
 	// SFML Packet << overload to support
 	friend sf::Packet& operator<<(sf::Packet& packet, const MatchPacket& matchPacket) {
 		packet << matchPacket.m_header;	
@@ -75,7 +75,8 @@ public:
 		packet << matchPacket.m_scoreChanges.size();
 		for (int i = 0; i < matchPacket.m_scoreChanges.size(); ++i)
 			packet << (sf::Int32)matchPacket.m_scoreChanges[i];
-		return packet << matchPacket.m_repeat;
+		packet << matchPacket.m_repeat;
+		return packet;
 	}
 
 	// SFML Packet >> overload to support
@@ -87,7 +88,8 @@ public:
 			packet >> scoreChange;
 			matchPacket.m_scoreChanges.push_back(scoreChange);
 		}
-		return packet >> matchPacket.m_repeat;
+		packet >> matchPacket.m_repeat;
+		return packet;
 	}
 private:
 	std::vector<sf::Int32> m_scoreChanges;
@@ -107,7 +109,7 @@ public:
 	}
 	Tile* getHand() { return m_hand; }
 
-	// SFML Packet << overload to support
+	// SFML Packet << overload to support FirstHandPacket
 	friend sf::Packet& operator<<(sf::Packet& packet, const FirstHandPacket& fhPacket) {
 		packet << fhPacket.m_header;
 		for (int i = 0; i < 13; ++i) {
@@ -116,7 +118,8 @@ public:
 		return packet;
 	}
 
-	// SFML Packet >> overload to support
+	// SFML Packet >> overload to support FirstHandPacket
+	// "packet" should first have its header (packed by operator<<) extracted manually
 	friend sf::Packet& operator>>(sf::Packet& packet, FirstHandPacket& fhPacket) {
 		for (int i = 0; i < 13; ++i) {
 			packet >> fhPacket.m_hand[i];
@@ -138,36 +141,47 @@ public:
 	}
 	Tile getDraw() const { return m_draw; }
 
-	// SFML Packet << overload to support
+	// SFML Packet << overload to support DrawPacket
 	friend sf::Packet& operator<<(sf::Packet& packet, const DrawPacket& drawPacket) {
 		packet << drawPacket.m_header;
-		return packet << drawPacket.m_draw;
+		packet << drawPacket.m_draw;
+		return packet;
 	}
 
-	// SFML Packet >> overload to support
+	// SFML Packet >> overload to support DrawPacket
+	// "packet" should first have its header (packed by operator<<) extracted manually
 	friend sf::Packet& operator>>(sf::Packet& packet, DrawPacket& drawPacket) {
-		return packet >> drawPacket.m_draw;
+		packet >> drawPacket.m_draw;
+		return packet;
 	}
 private:
 	Tile m_draw;
 };
 
-class DiscardSelfPacket : public MPacket {
+class SelfDiscardPacket : public MPacket {
 public:
-	DiscardSelfPacket() {
-		m_header = DISCARD_SELF;
+	SelfDiscardPacket(Tile discard) {
+		m_header = SELF_DISCARD;
+		m_discard = discard;
+	}
+	SelfDiscardPacket() {
+		m_header = SELF_DISCARD;
 	}
 	Tile getDiscard() const { return m_discard; }
 
-	//// SFML Packet << overload to support
-	//friend sf::Packet& operator<<(sf::Packet& packet, const DiscardSelfPacket& dsPacket) {
+	// SFML Packet << overload to support SelfDiscardPacket
+	friend sf::Packet& operator<<(sf::Packet& packet, const SelfDiscardPacket& sdPacket) {
+		packet << sdPacket.m_header;
+		packet << sdPacket.m_discard;
+		return packet;
+	}
 
-	//}
-
-	//// SFML Packet >> overload to support
-	//friend sf::Packet& operator>>(sf::Packet& packet, DiscardSelfPacket& dsPacket) {
-
-	//}
+	// SFML Packet >> overload to support SelfDiscardPacket
+	// "packet" should first have its header (packed by operator<<) extracted manually
+	friend sf::Packet& operator>>(sf::Packet& packet, SelfDiscardPacket& sdPacket) {
+		packet >> sdPacket.m_discard;
+		return packet;
+	}
 private:
 	Tile m_discard;
 };
@@ -179,12 +193,13 @@ public:
 	}
 	Tile getDiscard() const { return m_discard; }
 
-	//// SFML Packet << overload to support
+	//// SFML Packet << overload to support DiscardPacket
 	//friend sf::Packet& operator<<(sf::Packet& packet, const DiscardPacket& dPacket) {
 
 	//}
 
-	//// SFML Packet >> overload to support
+	//// SFML Packet >> overload to support DiscartPacket
+	//// "packet" should first have its header (packed by operator<<) extracted manually
 	//friend sf::Packet& operator>>(sf::Packet& packet, DiscardPacket& dPacket) {
 
 	//}

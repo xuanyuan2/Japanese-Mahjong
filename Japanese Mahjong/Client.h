@@ -49,6 +49,8 @@ private:
 	void loadTileTextures(); // Loads textures for the tiles
 	int tileTextureNo(Tile tile); // Gets the index of the texture corresponding to the tile
 	void receiveInformation(); // Receive and process information from the game server
+	void getFirstHand(sf::Packet& packet); // Extracts the first hand of the round from the packet
+	void getDraw(sf::Packet& packet); // Extracts the draw from the packet
 	void render(sf::RenderWindow& window); // Renders the 2D state of the world to the window in preparation for display
 	void discard(int i); // Discard the ith tile from the hand (i = 14 is the draw instead)
 
@@ -62,9 +64,9 @@ private:
 	sf::Texture m_facedownTileTexture;
 
 	std::unique_ptr<Match> match;
-	Tile hand[13];
-	Tile drawnTile = NUM_OF_TILES; // Defaults to error/no drawn tile
-	bool inputAllowed = false; // Players don't always have actions available to them - this is coordinated by the server
+	Tile m_hand[13];
+	Tile m_drawnTile = NUM_OF_TILES; // Defaults to error/no drawn tile
+	bool m_inputAllowed = false; // Players don't always have actions available to them - this is coordinated by the server
 
 	// Private constant members
 	unsigned int m_width = 800;

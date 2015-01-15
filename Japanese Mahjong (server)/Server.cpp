@@ -63,10 +63,53 @@ void Server::run() {
 	while (match->isActive()) {
 		redistributeTiles();
 		transmitHands();
-		
-		// Most of gameplay - drawing, discarding, melding - occurs in this loop
-		while (!handOver()) {
 
+		// Most of gameplay - drawing, discarding, melding - occurs in this loop
+		// Each iteration of this while loop is one turn
+		while (!handOver()) {
+			// For now, mostly test code follows until the end of the loop
+			int currentPlayer = match->getCurrentPlayer();
+			std::cerr << "Player this turn: " << currentPlayer + 1 << std::endl;
+			// Send the draw to the current player
+			sf::Packet packet;
+			Tile drawnTile = drawTile();
+			std::cerr << "Client drew: " << (int)drawnTile << std::endl;
+			playerHands[currentPlayer].push_back(drawnTile);
+			DrawPacket draw(drawnTile);
+			packet << draw;
+			m_clients[currentPlayer].send(packet);
+
+			// Get the player's discard
+			sf::Uint8 header = -1;
+			Tile discard;
+			while (header != SELF_DISCARD) {
+				packet.clear();
+				m_clients[currentPlayer].receive(packet);
+				packet >> header;
+				SelfDiscardPacket discardPacket;
+				packet >> discardPacket;
+				discard = discardPacket.getDiscard();
+			}
+
+			// Process tile movement from hand to discard
+			std::cerr << "Client attempted to discard: " << (int)discard << std::endl;
+			auto iterator = std::find(std::begin(playerHands[currentPlayer]), std::end(playerHands[currentPlayer]), discard);
+			if (iterator != std::end(playerHands[currentPlayer])) { // Check and make sure the client send a valid discard!
+				playerHands[currentPlayer].erase(iterator);
+			}
+			else { // Something's gone horribly wrong
+				std::cerr << "A player sent an invalid discard" << std::endl; 
+				int i = 0;
+				for (auto it = std::begin(playerHands[currentPlayer]); it != std::end(playerHands[currentPlayer]); ++it) {
+					std::cerr << (int)playerHands[currentPlayer][i] << std::endl;
+					++i;
+				}
+				while (true) {}
+			}
+			playerDiscards[currentPlayer].push_back(discard); // Add to discard heap
+
+			// Advance to next turn
+			match->nextTurn();
 		}
 
 		// The hand has ended
@@ -89,7 +132,6 @@ void Server::handleDealership() {
 	std::uniform_int_distribution<int> dist(0, m_NUMPLAYERS);
 	int dealer = dist(*rng); 
 	match.reset(new Match(dealer));
-
 	// Relay the information to all players
 	sf::Packet dealerPacket;
 	for (int p = 0; p < m_NUMPLAYERS; ++p) {
@@ -125,10 +167,12 @@ void Server::redistributeTiles() {
 	// Fill out players' hands
 	// Note - if there are less than 4 players, this code will not distribute all 136 tiles.
 	// Not an issue for normal mahjong, but if 3 player is implemented, this must be fixed
+	int wallMaxSize = liveWallMaxSize + deadWallMaxSize;
 	for (int p = 0; p < m_NUMPLAYERS; ++p) {
-		for (int t = liveWallMaxSize + deadWallMaxSize; t < NUM_OF_TILES; t++) {
-			playerHands[p].push_back(tiles[p * playerHandMaxSize + t]);
+		for (int t = wallMaxSize + p * playerHandMaxSize; t < wallMaxSize + (p + 1) * playerHandMaxSize; t++) {
+			playerHands[p].push_back(tiles[t]);
 		}
+		std::sort(std::begin(playerHands[p]), std::end(playerHands[p]));
 	}
 }
 
@@ -138,11 +182,6 @@ void Server::transmitHands() {
 		sf::Packet packet;
 		packet << hand;
 		m_clients[p].send(packet);
-
-		/*DrawPacket draw(drawTile());
-		packet.clear();
-		packet << draw;
-		m_clients[p].send(packet);*/
 	}
 }
 
