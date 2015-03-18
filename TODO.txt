@@ -24,20 +24,20 @@ FUNDAMENTAL GAME STRUCTURE (Server)
 [12-30-14] Store and distribute tiles
 [1-15-14] Implement basic timing of rounds (2, "hanchan") and hands (4+) (general structure)
 [1-15-14] Implement basic player turn/seat cycle
-[] Receive and interpret player input each turn *PARTIAL ON 1-15-14
+[] Receive and interpret player input each turn *PARTIAL ON 01-15-15
 [] Receive and interpret player input between turns (calls) (BEWARE: TIMING ISSUES LIKELY)
 [] Score player hands
 
 ***
 FUNDAMENTAL GAME STRUCTURE (Client)
-[] Wait on gamestate updates from server (general)
-[] Receive and interpret server gamestate updates (general)
-[] Interpret and transmit player input (general)
+[] Wait on gamestate updates from server (general) *PARTIAL ON 01-15-15
+[] Receive and interpret server gamestate updates (general) *PARTIAL ON 01-15-15
+[] Interpret and transmit player input (general) *PARTIAL ON 01-15-15
 
 ***
 CLIENT GUI
 [] Display game information (player names, seat winds, round wind, etc.)
-[] Allow player to select tile to discard each turn
+[01-15-15] Allow player to select tile to discard each turn
 [] Allow player to call melds on other players' discards
 [] Allow player to declare Richii
 
