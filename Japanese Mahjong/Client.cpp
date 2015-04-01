@@ -41,6 +41,12 @@ Client::Client(sf::TcpSocket& server, int NUMPLAYERS, sf::String usernames[], sf
 	m_playerNo = playerNo;
 	m_server.setBlocking(false);
 
+	for (int i = 0; i < NUMPLAYERS; i++) { // Initialize 2D playerDiscards vector
+		std::vector<Tile> discards;
+		playerDiscards.push_back(discards);
+	}
+	std::cerr << "wat" << std::endl;
+
 	if (!m_font.loadFromFile(FONT)) {
 		reportLoadFailure();
 	}
@@ -56,7 +62,7 @@ void Client::run() {
 	loadTileTextures();
 
 	sf::Music bgm;
-	if (!bgm.openFromFile("music.ogg")) reportLoadFailure();
+	if (!bgm.openFromFile("music.ogg")) /*reportLoadFailure()*/;
 	bgm.play();
 
 	sf::Packet dealerPacket;
@@ -83,24 +89,24 @@ void Client::run() {
 			// TODO: Send shutdown signal to server and other clients
 			if (event.type == sf::Event::Closed)
 				window.close();
-			// The following elseif clause for discarding tiles is VERY much debug code! Magic numbers, ahoy!
+			// The following elseif clause allowing the player to discard tiles is VERY much debug code! Magic numbers, ahoy!
 			else if (m_inputAllowed && event.type == sf::Event::MouseButtonReleased) {
 				sf::Vector2i pos = sf::Mouse::getPosition(window);
 				std::cout << "(" << pos.x << ", " << pos.y << ")" << std::endl;
 				// Discard from hand
-				if (pos.x > 100 && pos.x < 646 &&
-					pos.y > 526 && pos.y < 600) {
+				if (pos.x > 100 && pos.x < 746 &&
+					pos.y > 626 && pos.y < 700) {
 					int i = floor((pos.x - 100) / 42);
 					discard(i);
 				}
 				// Discard draw
-				else if (pos.x > 698 && pos.x < 740 &&
-					pos.y > 526 && pos.y < 600){
+				else if (pos.x > 688 && pos.x < 730 &&
+					pos.y > 626 && pos.y < 700){
 					discard(14);
 				}
 			}
 		}
-
+		
 		// clear the window
 		sf::Color mahjongGreen(70, 120, 100, 255);
 		window.clear(mahjongGreen);
@@ -176,10 +182,17 @@ void Client::receiveInformation() {
 			getDraw(packet);
 			m_inputAllowed = true; // TODO: does drawing always mean it's time for user input?
 			break;
-		case DISCARD: // This is specifically another player's discard
-			// TODO: Clients should keep track of other players' discards as well in Japanese mahjong
-			std::cerr << "another player's discard has been received." << std::endl;
-			match->nextTurn();
+		case DISCARD: { // This is specifically another player's discard
+			DiscardPacket discardPacket;
+			packet >> discardPacket;
+			Tile discard = discardPacket.getDiscard();
+
+			int currentPlayer = match->getCurrentPlayer();
+			playerDiscards[currentPlayer].push_back(discard);
+			match->nextTurn(); // Advance to next turn
+			std::cerr << "Another player has discarded:" << (int)discard << std::endl;
+			match->nextTurn(); 
+			}
 			break;
 		default:
 			std::cerr << "error: message from server uninterpretable!" << std::endl;
@@ -210,7 +223,7 @@ void Client::render(sf::RenderWindow& window) {
 	for (int i = 0; i < 13; ++i) {
 		sf::Sprite testSprite;
 		testSprite.setTexture(m_tileTextures[tileTextureNo(m_hand[i])]);
-		testSprite.setPosition(sf::Vector2f(100 + 42 * i, 526));
+		testSprite.setPosition(sf::Vector2f(100 + 42 * i, 626));
 		window.draw(testSprite);
 	}
 
@@ -218,9 +231,44 @@ void Client::render(sf::RenderWindow& window) {
 	if (m_drawnTile != NUM_OF_TILES) {
 		sf::Sprite testSprite;
 		testSprite.setTexture(m_tileTextures[tileTextureNo(m_drawnTile)]);
-		testSprite.setPosition(sf::Vector2f(110 + 42 * 14, 526));
+		testSprite.setPosition(sf::Vector2f(100 + 42 * 14, 626));
 		window.draw(testSprite);
 	}
+
+	// Render other players hands face down (still testing)
+	sf::Sprite testSprite;
+	testSprite.setTexture(m_facedownTileTexture);
+	// Left Player
+	testSprite.rotate(90);
+	testSprite.setPosition(sf::Vector2f(80, 75));
+	for (int i = 0; i < 13; i++) {
+		window.draw(testSprite);
+		sf::Vector2f pos = testSprite.getPosition();
+		float X = pos.x;
+		float Y = pos.y;
+		testSprite.setPosition(sf::Vector2f(X, Y + 42));
+	}
+	// Top Player
+	testSprite.rotate(90);
+	testSprite.setPosition(175, 10 + 64);
+	for (int i = 0; i < 13; i++) {
+		window.draw(testSprite);
+		sf::Vector2f pos = testSprite.getPosition();
+		float X = pos.x;
+		float Y = pos.y;
+		testSprite.setPosition(sf::Vector2f(X + 42, Y));
+	}
+	// Right Player
+	testSprite.rotate(90);
+	testSprite.setPosition(sf::Vector2f(m_width - 70, m_height - 75));
+	for (int i = 0; i < 13; i++) {
+		window.draw(testSprite);
+		sf::Vector2f pos = testSprite.getPosition();
+		float X = pos.x;
+		float Y = pos.y;
+		testSprite.setPosition(sf::Vector2f(X, Y - 42));
+	}
+	
 }
 
 void Client::discard(int i) {
@@ -231,6 +279,7 @@ void Client::discard(int i) {
 		std::sort(std::begin(m_hand), std::end(m_hand));
 	}
 	else discardedTile = m_drawnTile;
+
 	std::cerr << "Discarded: " << (int)discardedTile << std::endl;
 	// Inform server of discard
 	sf::Packet packet;

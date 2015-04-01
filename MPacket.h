@@ -193,16 +193,20 @@ public:
 	}
 	Tile getDiscard() const { return m_discard; }
 
-	//// SFML Packet << overload to support DiscardPacket
-	//friend sf::Packet& operator<<(sf::Packet& packet, const DiscardPacket& dPacket) {
+	// SFML Packet << overload to support DiscardPacket
+	friend sf::Packet& operator<<(sf::Packet& packet, const DiscardPacket& dPacket) {
+		packet << DISCARD;
+		return packet << dPacket.m_discard;
+	}
 
-	//}
-
-	//// SFML Packet >> overload to support DiscartPacket
-	//// "packet" should first have its header (packed by operator<<) extracted manually
-	//friend sf::Packet& operator>>(sf::Packet& packet, DiscardPacket& dPacket) {
-
-	//}
+	// SFML Packet >> overload to support DiscartPacket
+	// "packet" should first have its header (packed by operator<<) extracted manually
+	friend sf::Packet& operator>>(sf::Packet& packet, DiscardPacket& dPacket) {
+		int discard;
+		packet >> discard;
+		dPacket.m_discard = discard;
+		return packet;
+	}
 private:
 	Tile m_discard;
 };

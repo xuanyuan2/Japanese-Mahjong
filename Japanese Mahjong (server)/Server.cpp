@@ -80,15 +80,17 @@ void Server::run() {
 			m_clients[currentPlayer].send(packet);
 
 			// Get the player's discard
-			sf::Uint8 header = -1;
+			sf::Uint8 header = -1; // Initialized as invalid header
 			Tile discard;
-			while (header != SELF_DISCARD) {
+			while (header != SELF_DISCARD) { // Ignore all player input until they send a discard
 				packet.clear();
 				m_clients[currentPlayer].receive(packet);
 				packet >> header;
-				SelfDiscardPacket discardPacket;
-				packet >> discardPacket;
-				discard = discardPacket.getDiscard();
+				if (header == SELF_DISCARD) {
+					SelfDiscardPacket discardPacket;
+					packet >> discardPacket;
+					discard = discardPacket.getDiscard();
+				}
 			}
 
 			// Process tile movement from hand to discard
@@ -104,9 +106,11 @@ void Server::run() {
 					std::cerr << (int)playerHands[currentPlayer][i] << std::endl;
 					++i;
 				}
-				while (true) {}
+				while (true) {} // Infinite loop for debug
 			}
 			playerDiscards[currentPlayer].push_back(discard); // Add to discard heap
+		
+			// Send discards to all players
 
 			// Advance to next turn
 			match->nextTurn();

@@ -66,10 +66,11 @@ private:
 	std::unique_ptr<Match> match;
 	Tile m_hand[13];
 	Tile m_drawnTile = NUM_OF_TILES; // Defaults to error/no drawn tile
+	std::vector < std::vector<Tile> > playerDiscards;
 	bool m_inputAllowed = false; // Players don't always have actions available to them - this is coordinated by the server
 
 	// Private constant members
 	unsigned int m_width = 800;
-	unsigned int m_height = 600;
+	unsigned int m_height = 700;
 };
 #endif
