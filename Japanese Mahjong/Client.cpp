@@ -45,7 +45,6 @@ Client::Client(sf::TcpSocket& server, int NUMPLAYERS, sf::String usernames[], sf
 		std::vector<Tile> discards;
 		playerDiscards.push_back(discards);
 	}
-	std::cerr << "wat" << std::endl;
 
 	if (!m_font.loadFromFile(FONT)) {
 		reportLoadFailure();
@@ -61,10 +60,14 @@ void Client::reportLoadFailure() {
 void Client::run() {
 	loadTileTextures();
 
+	// Load music
 	sf::Music bgm;
 	if (!bgm.openFromFile("music.ogg")) /*reportLoadFailure()*/;
+	bgm.setVolume(30);
+	bgm.setLoop(true);
 	bgm.play();
 
+	// Determine from server which player is the dealer and restart the match system
 	sf::Packet dealerPacket;
 	m_server.receive(dealerPacket);
 	int dealer;
@@ -76,7 +79,7 @@ void Client::run() {
 	// run the program as long as the window is open
 	while (window.isOpen())	{
 
-		// Game logic loop
+		// Once per loop, check for server information
 		if (match->isActive()) {
 			// Receive server info
 			receiveInformation();
@@ -87,8 +90,10 @@ void Client::run() {
 		while (window.pollEvent(event)) {
 			// "close requested" event: we close the window
 			// TODO: Send shutdown signal to server and other clients
-			if (event.type == sf::Event::Closed)
+			if (event.type == sf::Event::Closed) {
 				window.close();
+				exit(0);
+			}
 			// The following elseif clause allowing the player to discard tiles is VERY much debug code! Magic numbers, ahoy!
 			else if (m_inputAllowed && event.type == sf::Event::MouseButtonReleased) {
 				sf::Vector2i pos = sf::Mouse::getPosition(window);
@@ -167,9 +172,10 @@ void Client::receiveInformation() {
 		std::cerr << "Message received. Interpreting header type " << (int)packetHeader << "...";
 		switch (packetHeader) {
 		case MATCH_UPDATE: {
-			std::cerr << " match update received." << std::endl;
+			std::cerr << "match update received." << std::endl;
 			MatchPacket updateInformation;
 			packet >> updateInformation;
+			std::cerr << (updateInformation.getScoreChanges()[0]) << std::endl;
 			match->update(updateInformation.getScoreChanges(), updateInformation.getRepeat());
 			break;
 		}
@@ -182,18 +188,18 @@ void Client::receiveInformation() {
 			getDraw(packet);
 			m_inputAllowed = true; // TODO: does drawing always mean it's time for user input?
 			break;
-		case DISCARD: { // This is specifically another player's discard
+		case DISCARD: {
+			std::cerr << "a player has discarded." << std::endl;
 			DiscardPacket discardPacket;
 			packet >> discardPacket;
 			Tile discard = discardPacket.getDiscard();
 
 			int currentPlayer = match->getCurrentPlayer();
 			playerDiscards[currentPlayer].push_back(discard);
+			std::cerr << "Player " << currentPlayer << " has discarded: " << (int)discard << std::endl;
 			match->nextTurn(); // Advance to next turn
-			std::cerr << "Another player has discarded:" << (int)discard << std::endl;
-			match->nextTurn(); 
-			}
 			break;
+		}
 		default:
 			std::cerr << "error: message from server uninterpretable!" << std::endl;
 			while (true) {} // Hang
@@ -219,56 +225,137 @@ void Client::getDraw(sf::Packet& packet) {
 }
 
 void Client::render(sf::RenderWindow& window) {
+	// Player info
+	sf::Text number(std::to_string((int)m_playerNo + 1), m_font);
+	number.setCharacterSize(36);
+	number.setColor(sf::Color(255, 0, 0, 255));
+	number.setPosition(sf::Vector2f(0, 664));
+	window.draw(number);
+
+	// Display number of tiles left to draw (i.e. number of turns left in a hand)
+	sf::Text counter(std::to_string(match->getNumTilesLeft()), m_font);
+	counter.setCharacterSize(36);
+	counter.setColor(sf::Color(255, 106, 0, 235)); 
+	counter.setPosition(sf::Vector2f(375, 300));
+	window.draw(counter);
+
 	// Render the hand (still testing)
 	for (int i = 0; i < 13; ++i) {
-		sf::Sprite testSprite;
-		testSprite.setTexture(m_tileTextures[tileTextureNo(m_hand[i])]);
-		testSprite.setPosition(sf::Vector2f(100 + 42 * i, 626));
-		window.draw(testSprite);
+		sf::Sprite tile;
+		tile.setTexture(m_tileTextures[tileTextureNo(m_hand[i])]);
+		tile.setPosition(sf::Vector2f(100 + 42 * i, 626));
+		window.draw(tile);
 	}
 
 	// Render the drawn tile (still testing)
-	if (m_drawnTile != NUM_OF_TILES) {
-		sf::Sprite testSprite;
-		testSprite.setTexture(m_tileTextures[tileTextureNo(m_drawnTile)]);
-		testSprite.setPosition(sf::Vector2f(100 + 42 * 14, 626));
-		window.draw(testSprite);
+	if (m_drawnTile != NUM_OF_TILES) { // Checks to see if player currently has a drawn tile - NUM_OF_TILES serves as indicator value
+		sf::Sprite tile;
+		tile.setTexture(m_tileTextures[tileTextureNo(m_drawnTile)]);
+		tile.setPosition(sf::Vector2f(100 + 42 * 14, 626));
+		window.draw(tile);
 	}
 
 	// Render other players hands face down (still testing)
-	sf::Sprite testSprite;
-	testSprite.setTexture(m_facedownTileTexture);
-	// Left Player
-	testSprite.rotate(90);
-	testSprite.setPosition(sf::Vector2f(80, 75));
+	sf::Sprite facedownTile;
+	facedownTile.setTexture(m_facedownTileTexture);
+
+
+	// Right Player
+	facedownTile.rotate(-90);
+	facedownTile.setPosition(sf::Vector2f(m_width - 70, m_height - 75));
 	for (int i = 0; i < 13; i++) {
-		window.draw(testSprite);
-		sf::Vector2f pos = testSprite.getPosition();
+		window.draw(facedownTile);
+		sf::Vector2f pos = facedownTile.getPosition();
 		float X = pos.x;
 		float Y = pos.y;
-		testSprite.setPosition(sf::Vector2f(X, Y + 42));
+		facedownTile.setPosition(sf::Vector2f(X, Y - 42));
 	}
 	// Top Player
-	testSprite.rotate(90);
-	testSprite.setPosition(175, 10 + 64);
+	facedownTile.rotate(-90);
+	facedownTile.setPosition(175, 10 + 64);
 	for (int i = 0; i < 13; i++) {
-		window.draw(testSprite);
-		sf::Vector2f pos = testSprite.getPosition();
+		window.draw(facedownTile);
+		sf::Vector2f pos = facedownTile.getPosition();
 		float X = pos.x;
 		float Y = pos.y;
-		testSprite.setPosition(sf::Vector2f(X + 42, Y));
+		facedownTile.setPosition(sf::Vector2f(X + 42, Y));
 	}
-	// Right Player
-	testSprite.rotate(90);
-	testSprite.setPosition(sf::Vector2f(m_width - 70, m_height - 75));
+	// Left Player
+	facedownTile.rotate(-90);
+	facedownTile.setPosition(sf::Vector2f(80, 75));
 	for (int i = 0; i < 13; i++) {
-		window.draw(testSprite);
-		sf::Vector2f pos = testSprite.getPosition();
+		window.draw(facedownTile);
+		sf::Vector2f pos = facedownTile.getPosition();
 		float X = pos.x;
 		float Y = pos.y;
-		testSprite.setPosition(sf::Vector2f(X, Y - 42));
+		facedownTile.setPosition(sf::Vector2f(X, Y + 42));
 	}
-	
+
+
+	// Render own discards (still testing)
+	for (int i = 0; i != playerDiscards[m_playerNo].size(); ++i) {
+		float scale = 0.75; // How much smaller discarded tiles are compared to tiles in the hand
+		sf::Sprite discard;
+		discard.setTexture(m_tileTextures[tileTextureNo(playerDiscards[m_playerNo][i])]);
+		discard.scale(sf::Vector2f(scale, scale));
+
+		// Determining x and y positions for each tile
+		int x = i % 6; // 6 tiles per row
+		int y = i / 6; // Column determination
+
+		discard.setPosition(sf::Vector2f(300 + 42 * scale * x, 400 + 64 * scale * y));
+		window.draw(discard);
+	}
+
+	// Render other players' discards
+	// Right player (-1)
+	int rightPlayerNo = (m_playerNo + 3) % 4;
+	for (int i = 0; i != playerDiscards[rightPlayerNo].size(); ++i) {
+		float scale = 0.75; // How much smaller discarded tiles are compared to tiles in the hand
+		sf::Sprite discard;
+		discard.setTexture(m_tileTextures[tileTextureNo(playerDiscards[rightPlayerNo][i])]);
+		discard.rotate(-90);
+		discard.scale(sf::Vector2f(scale, scale));
+
+		// Determining x and y positions for each tile
+		int x = i / 6; // 6 tiles per row
+		int y = i % 6; // Column determination
+
+		discard.setPosition(sf::Vector2f(500 + 64 * scale * x, 400 - 42 * scale * y));
+		window.draw(discard);
+	}
+	// Top player (-2)
+	int topPlayerNo = (m_playerNo + 2) % 4;
+	for (int i = 0; i != playerDiscards[topPlayerNo].size(); ++i) {
+		float scale = 0.75; // How much smaller discarded tiles are compared to tiles in the hand
+		sf::Sprite discard;
+		discard.setTexture(m_tileTextures[tileTextureNo(playerDiscards[topPlayerNo][i])]);
+		discard.rotate(-180);
+		discard.scale(sf::Vector2f(scale, scale));
+
+		// Determining x and y positions for each tile
+		int x = i % 6; // 6 tiles per row
+		int y = i / 6; // Column determination
+
+		discard.setPosition(sf::Vector2f(520 - 42 * scale * x, 200 - 64 * scale * y));
+		window.draw(discard);
+	}
+	// Left player (-3)
+	int leftPlayerNo = (m_playerNo + 1) % 4;
+	for (int i = 0; i != playerDiscards[leftPlayerNo].size(); ++i) {
+		float scale = 0.75; // How much smaller discarded tiles are compared to tiles in the hand
+		sf::Sprite discard;
+		discard.setTexture(m_tileTextures[tileTextureNo(playerDiscards[leftPlayerNo][i])]);
+		discard.rotate(-270);
+		discard.scale(sf::Vector2f(scale, scale));
+
+		// Determining x and y positions for each tile
+		int x = i / 6; // 6 tiles per row
+		int y = i % 6; // Column determination
+
+		discard.setPosition(sf::Vector2f(300 - 64 * scale * x, 200 + 42 * scale * y));
+		window.draw(discard);
+	}
 }
 
 void Client::discard(int i) {
@@ -279,15 +366,18 @@ void Client::discard(int i) {
 		std::sort(std::begin(m_hand), std::end(m_hand));
 	}
 	else discardedTile = m_drawnTile;
-
 	std::cerr << "Discarded: " << (int)discardedTile << std::endl;
+
+	// Add discard to personal discard pile
+	playerDiscards[m_playerNo].push_back(discardedTile);
+
 	// Inform server of discard
 	sf::Packet packet;
 	SelfDiscardPacket sdPacket(discardedTile);
-	std::cerr << (int)sdPacket.getDiscard() << std::endl;
 	packet << sdPacket;
 	m_server.send(packet);
 
 	m_inputAllowed = false;
 	m_drawnTile = NUM_OF_TILES; // Invalidate the drawn tile member variable (nothing drawn)
+	match->nextTurn(); 
 }

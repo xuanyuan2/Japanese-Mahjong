@@ -68,13 +68,20 @@ void Server::run() {
 		// Each iteration of this while loop is one turn
 		while (!handOver()) {
 			// For now, mostly test code follows until the end of the loop
+
 			int currentPlayer = match->getCurrentPlayer();
 			std::cerr << "Player this turn: " << currentPlayer + 1 << std::endl;
-			// Send the draw to the current player
+			std::cerr << "Tiles left: " << match->getNumTilesLeft() << std::endl;
+
+			// Draw a tile for current player
 			sf::Packet packet;
 			Tile drawnTile = drawTile();
 			std::cerr << "Client drew: " << (int)drawnTile << std::endl;
+
+			// Add tile to current player's hand
 			playerHands[currentPlayer].push_back(drawnTile);
+
+			// Send tile to current player's client
 			DrawPacket draw(drawnTile);
 			packet << draw;
 			m_clients[currentPlayer].send(packet);
@@ -110,14 +117,24 @@ void Server::run() {
 			}
 			playerDiscards[currentPlayer].push_back(discard); // Add to discard heap
 		
-			// Send discards to all players
+			// TODO: Check if other players can chii/pon/ron off discard
+
+			// Send discard to other players
+			std::cerr << "Client succesfully discarded " << int(discard) << std::endl;
+			DiscardPacket dp(discard);
+			packet.clear();
+			packet << dp;
+			for (int i = 0; i < NUM_PLAYERS; ++i) {
+				if (i != currentPlayer)
+					m_clients[i].send(packet);
+			}
 
 			// Advance to next turn
 			match->nextTurn();
 		}
 
 		// The hand has ended
-		bool repeat;
+		bool repeat = false;
 		std::vector<int> scoreUpdate = scoreChanges(repeat);
 		transmitMatchUpdate(scoreUpdate, repeat);
 		match->update(scoreUpdate, repeat);

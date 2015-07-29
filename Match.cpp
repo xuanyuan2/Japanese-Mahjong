@@ -30,15 +30,19 @@ scores, etc.
 #include "Match.h"
 
 Match::Match(int dealerNo) {
+	m_numTilesLeft = 69; // Dealer draws a tile to start.
 	m_round = EAST_ROUND;
 	m_hand = 0;
 	m_handsUntilNextRound = 4;
 
+	// Default starting scores
 	for (int i = 0; i < NUM_PLAYERS; ++i) {
-		m_scores[i] = 25000;
+		m_scores[i] = INITIAL_SCORE;
 	}
 
 	m_turn = dealerNo; // The dealer is always first to play
+
+	// Assign seat winds to each player
 	int seat = EAST_SEAT;
 	for (int i = dealerNo; i < dealerNo + NUM_PLAYERS; ++i) {
 		m_seats[i % NUM_PLAYERS] = seat;
@@ -61,8 +65,9 @@ bool Match::isActive() const {
 }
 
 void Match::nextTurn() {
-	// Equivalent to subtracting one - we have to go in reverse order of Seats
+	// Equivalent to subtracting one - play proceeds in counter-clockwise order, as opposed to seating
 	m_turn = (m_turn + 3) % 4; 
+	m_numTilesLeft--;
 }
 
 void Match::update(std::vector<int> scoreChanges , bool repeat) {

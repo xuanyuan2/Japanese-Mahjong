@@ -41,7 +41,7 @@ enum Rounds {
 	NORTH_ROUND
 };
 
-// These are the names of the player seating positions going clockwise
+// These are the names of the player seating positions (going clockwise)
 enum Seats {
 	EAST_SEAT, // Also the dealer of any given hand
 	NORTH_SEAT,
@@ -63,6 +63,7 @@ public:
 	int getDealer() const; // Returns the dealer of the current hand
 	int getSeat(int playerNo) const { return m_seats[playerNo]; } // Returns the seat of the indicated player
 	int getCurrentPlayer() const { return m_turn; } // Returns whose turn (to discard) it currently is
+	int getNumTilesLeft() const { return m_numTilesLeft;  } // Returns how many tiles are left on the live wall
 	void nextTurn(); // Advance to the next turn
 	bool isActive() const; // Checks to see if the match can continue or is over
 	// Updates scores based on the differences passed into the array
@@ -71,6 +72,7 @@ public:
 	// The hand count is then incremented
 	void update(std::vector<int> scoreChanges, bool repeat); 
 private:
+	int m_numTilesLeft; // Number of tiles on the live wall
 	int m_round; // The current round number (uses the enum Rounds)
 	int m_hand; // The current hand number
 	int m_turn; // Whose turn (to discard) it currently is (uses the enum Seats)
